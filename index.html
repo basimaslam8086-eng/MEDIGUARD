@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="manifest" href="manifest.json">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
     <title>MEDIGUARD - Rural Health IoT Portal</title>
     <style>
         :root {
@@ -28,7 +29,7 @@
         
         /* User Profile */
         .profile-card { display: flex; align-items: center; gap: 14px; background: #0F172A; padding: 12px 16px; border-radius: 20px; border: 1px solid var(--card-border); margin-bottom: 18px; }
-        .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0284C7, #38BDF8); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); position: relative; }
+        .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0284C7, #38BDF8); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--accent-blue); position: relative; }
         .online-dot { width: 12px; height: 12px; background: var(--accent-green); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid #0F172A; }
         .profile-meta h3 { font-size: 16px; font-weight: 700; }
         .profile-meta p { font-size: 11px; color: var(--text-muted); }
@@ -49,26 +50,30 @@
         .vital-box { background: #1E293B; padding: 14px; border-radius: 14px; text-align: center; border: 1px solid var(--card-border); }
         .vital-val { font-size: 24px; font-weight: 800; color: var(--accent-blue); margin-top: 4px; }
 
-        /* Buttons */
+        /* Buttons & Inputs */
         .btn { width: 100%; border: none; border-radius: 14px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
         .btn:active { transform: scale(0.97); }
         .btn-sos { background: linear-gradient(135deg, #DC2626, #EF4444); color: white; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); font-size: 14px; }
         .btn-action { background: #334155; color: var(--text-main); }
         .btn-action:hover { background: #475569; }
-        .btn-take { background: var(--accent-green); color: white; padding: 6px 14px; border-radius: 10px; font-size: 11px; width: auto; margin: 0; }
+        
+        .form-input { width: 100%; padding: 10px; background: #1E293B; border: 1px solid var(--card-border); border-radius: 10px; color: white; font-size: 12px; margin-top: 6px; outline: none; }
+        .form-input:focus { border-color: var(--accent-blue); }
 
         /* Pills List */
-        .pill-row { display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border); }
+        .pill-row { display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 10px 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border); }
         .pill-info { display: flex; flex-direction: column; gap: 2px; }
         .pill-name { font-size: 13px; font-weight: 700; }
         .pill-time { font-size: 11px; color: var(--text-muted); }
+        .pill-actions { display: flex; gap: 6px; align-items: center; }
+        .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-take { background: var(--accent-green); color: white; }
+        .btn-del { background: rgba(239, 68, 68, 0.2); color: #F87171; }
 
         /* Assistant Inputs */
         .chip-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
         .chip { background: #1E293B; color: var(--accent-blue); padding: 6px 12px; border-radius: 20px; font-size: 11px; border: 1px solid var(--card-border); cursor: pointer; }
         .chip:hover { background: var(--card-border); }
-        .chat-input { width: 100%; padding: 12px; background: #1E293B; border: 1px solid var(--card-border); border-radius: 12px; color: white; font-size: 12px; margin-top: 8px; outline: none; }
-        .chat-input:focus { border-color: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -77,18 +82,18 @@
         <!-- Brand Header -->
         <div class="brand-bar">
             <div class="brand-title">🛡️ MEDI<span>GUARD</span></div>
-            <span class="badge badge-green">v2.4 Active</span>
+            <span class="badge badge-green">Rural Care v3.0</span>
         </div>
 
         <!-- User Profile Card -->
         <div class="profile-card">
             <div class="profile-avatar">
-                🩺
+                👵
                 <div class="online-dot"></div>
             </div>
             <div class="profile-meta">
-                <h3>Rural Patient Portal</h3>
-                <p>📍 Kodungallur Sector • Wristband ID #8086</p>
+                <h3>Rural Elder Health Node</h3>
+                <p>📍 Sector: Perinjanam / Primary Care</p>
             </div>
         </div>
 
@@ -96,104 +101,153 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">❤️ Continuous Vitals (PPG)</div>
-                <span class="badge badge-green" id="vitals-status">Optimal</span>
+                <span class="badge badge-green" id="vitals-status">Stable</span>
             </div>
             <div class="vitals-grid">
                 <div class="vital-box">
                     <span style="font-size: 11px; color: var(--text-muted);">Pulse Rate</span>
-                    <div class="vital-val" id="hr-display">74 <span style="font-size:12px;">BPM</span></div>
+                    <div class="vital-val" id="hr-display">76 <span style="font-size:12px;">BPM</span></div>
                 </div>
                 <div class="vital-box">
-                    <span style="font-size: 11px; color: var(--text-muted);">Est. Blood Pressure</span>
-                    <div class="vital-val" id="bp-display">118/78</div>
+                    <span style="font-size: 11px; color: var(--text-muted);">Blood Pressure</span>
+                    <div class="vital-val" id="bp-display">120/80</div>
                 </div>
             </div>
-            <button class="btn btn-action" onclick="simulateSpike()">⚠️ Simulate Sudden ECG/BP Alert Spike</button>
+            <button class="btn btn-action" onclick="simulateSpike()">⚠️ Test Sensor Vitals Spike</button>
         </div>
 
-        <!-- Daily Pill Schedule -->
+        <!-- Editable Medicine Schedule -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">💊 Medicine Schedule</div>
-                <span class="badge badge-blue" id="pill-count-badge">2 Scheduled</span>
+                <div class="card-title">💊 Prescribed Medicines</div>
+                <span class="badge badge-blue" id="pill-count-badge">Active Schedule</span>
             </div>
             
-            <div class="pill-row" id="pill1">
-                <div class="pill-info">
-                    <span class="pill-name">Metformin (500mg)</span>
-                    <span class="pill-time">⏰ Morning • 8:00 AM</span>
-                </div>
-                <button class="btn btn-take" onclick="markTaken('pill1')">Mark Taken</button>
+            <div id="medicines-container">
+                <!-- Dynamically loaded via JS -->
             </div>
 
-            <div class="pill-row" id="pill2">
-                <div class="pill-info">
-                    <span class="pill-name">Aspirin (75mg)</span>
-                    <span class="pill-time">⏰ Afternoon • 1:30 PM</span>
-                </div>
-                <button class="btn btn-take" onclick="markTaken('pill2')">Mark Taken</button>
+            <!-- Add Medicine Form -->
+            <div style="margin-top: 12px; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ADD NEW MEDICATION</span>
+                <input type="text" id="new-med-name" class="form-input" placeholder="Medicine Name & Dosage (e.g. Atenolol 50mg)">
+                <input type="text" id="new-med-time" class="form-input" placeholder="Time (e.g. Evening • 6:00 PM)">
+                <button class="btn btn-action" style="background: var(--accent-blue); color: #000;" onclick="addMedicine()">+ Add to Schedule</button>
             </div>
         </div>
 
-        <!-- One-Tap Emergency SOS -->
+        <!-- One-Tap Emergency SOS with Editable Number -->
         <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
             <div class="card-header">
-                <div class="card-title" style="color: #F87171;">🚨 One-Tap Emergency SOS</div>
-                <span class="badge badge-red">GSM Cellular Ready</span>
+                <div class="card-title" style="color: #F87171;">🚨 Emergency SOS Gateway</div>
+                <span class="badge badge-red">Direct GSM Call</span>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted);">Triggers immediate distress signal with GPS coordinates to closest primary health center & family contacts even without 4G internet.</p>
-            <button class="btn btn-sos" onclick="triggerSOS()">DISPATCH SOS EMERGENCY</button>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Configured Emergency Contact (Family / Health Worker):</p>
+            <input type="text" id="sos-number" class="form-input" value="+919847000000" placeholder="Enter Emergency Phone Number">
+            <button class="btn btn-sos" onclick="triggerSOS()">DISPATCH SOS EMERGENCY CALL</button>
         </div>
 
-        <!-- AI Voice & Assistant -->
+        <!-- AI Assistant -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">🤖 MEDIGUARD AI Assistant</div>
-                <span class="badge badge-blue">Local Guidance</span>
+                <div class="card-title">🤖 Rural Health AI Assistant</div>
+                <span class="badge badge-blue">Clinical Guidance</span>
             </div>
             <div class="chip-group">
-                <span class="chip" onclick="quickQuery('What to do for dizziness?')">💫 Dizziness</span>
-                <span class="chip" onclick="quickQuery('Check next medicine time')">⏰ Next Pill</span>
-                <span class="chip" onclick="quickQuery('What is normal BP range?')">📊 BP Range</span>
+                <span class="chip" onclick="quickQuery('What to do if feeling dizzy?')">💫 Dizziness</span>
+                <span class="chip" onclick="quickQuery('Missed morning pill')">⏰ Missed Pill</span>
+                <span class="chip" onclick="quickQuery('High BP symptoms')">📊 High BP</span>
             </div>
-            <input type="text" id="ai-query" class="chat-input" placeholder="Type or tap symptom query above...">
-            <button class="btn btn-action" style="background: var(--accent-blue); color: #000;" onclick="runAI()">Ask Medical AI</button>
+            <input type="text" id="ai-query" class="chat-input form-input" placeholder="Ask health question...">
+            <button class="btn btn-action" onclick="runAI()">Ask AI Advisor</button>
             <div id="ai-output" style="font-size: 12px; color: var(--accent-blue); margin-top: 10px; line-height: 1.4; font-weight: 600;"></div>
         </div>
     </div>
 
     <script>
-        let remainingPills = 2;
+        // Initial Default Medicines stored in browser memory
+        let medicines = JSON.parse(localStorage.getItem('mediguard_meds')) || [
+            { id: 1, name: "Metformin (500mg)", time: "Morning • 8:00 AM", taken: false },
+            { id: 2, name: "Aspirin (75mg)", time: "Afternoon • 1:30 PM", taken: false }
+        ];
 
-        function markTaken(id) {
-            const row = document.getElementById(id);
-            const btn = row.querySelector('.btn-take');
-            btn.innerText = "✓ Done";
-            btn.style.background = "#334155";
-            btn.disabled = true;
-            remainingPills--;
+        function renderMedicines() {
+            const container = document.getElementById('medicines-container');
+            container.innerHTML = '';
             
-            const badge = document.getElementById('pill-count-badge');
-            if (remainingPills > 0) {
-                badge.innerText = remainingPills + " Scheduled";
-            } else {
-                badge.innerText = "All Completed!";
-                badge.className = "badge badge-green";
+            if (medicines.length === 0) {
+                container.innerHTML = '<p style="font-size:11px; color:var(--text-muted); text-align:center; padding:10px;">No medications scheduled.</p>';
+                document.getElementById('pill-count-badge').innerText = "0 Scheduled";
+                return;
             }
-            alert("✅ Pill confirmed taken! Haptic vibration alert synced to MEDIGUARD wristband.");
+
+            let pendingCount = 0;
+            medicines.forEach((med, index) => {
+                if (!med.taken) pendingCount++;
+                
+                const row = document.createElement('div');
+                row.className = 'pill-row';
+                row.innerHTML = `
+                    <div class="pill-info">
+                        <span class="pill-name" style="${med.taken ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${med.name}</span>
+                        <span class="pill-time">⏰ ${med.time}</span>
+                    </div>
+                    <div class="pill-actions">
+                        <button class="btn-sm ${med.taken ? 'btn-action' : 'btn-take'}" onclick="toggleTaken(${index})">${med.taken ? 'Done ✓' : 'Take'}</button>
+                        <button class="btn-sm btn-del" onclick="deleteMedicine(${index})">✕</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+            
+            document.getElementById('pill-count-badge').innerText = pendingCount + " Pending";
+            localStorage.setItem('mediguard_meds', JSON.stringify(medicines));
+        }
+
+        function toggleTaken(index) {
+            medicines[index].taken = !medicines[index].taken;
+            renderMedicines();
+        }
+
+        function addMedicine() {
+            const nameInput = document.getElementById('new-med-name');
+            const timeInput = document.getElementById('new-med-time');
+            if(!nameInput.value) {
+                alert("Please enter the medicine name.");
+                return;
+            }
+            medicines.push({
+                id: Date.now(),
+                name: nameInput.value,
+                time: timeInput.value || "Daily",
+                taken: false
+            });
+            nameInput.value = '';
+            timeInput.value = '';
+            renderMedicines();
+        }
+
+        function deleteMedicine(index) {
+            medicines.splice(index, 1);
+            renderMedicines();
         }
 
         function triggerSOS() {
-            alert("🚨 MEDIGUARD EMERGENCY SOS ACTIVATED!\n\n📍 Current GPS Coordinates: Lat 10.22° N, Long 76.20° E\n\n📲 Offline GSM SMS dispatched to Nearest Medical Center & Registered Emergency Contacts!");
+            const phoneNumber = document.getElementById('sos-number').value || "+919847000000";
+            const confirmCall = confirm(🚨 EMERGENCY SOS TRIGGERED!\n\nThis will initiate an immediate phone call / SMS dispatch to your registered contact:\n📞 ${phoneNumber}\n\nProceed with live call?);
+            if (confirmCall) {
+                // Triggers native phone dialer on mobile/tablet devices
+                window.location.href = tel:${phoneNumber};
+            }
         }
 
         function simulateSpike() {
-            document.getElementById('hr-display').innerText = "136 BPM";
-            document.getElementById('bp-display').innerText = "150/98";
+            document.getElementById('hr-display').innerText = "138 BPM";
+            document.getElementById('bp-display').innerText = "155/95";
             const badge = document.getElementById('vitals-status');
-            badge.innerText = "HIGH RISK";
+            badge.innerText = "WARNING";
             badge.className = "badge badge-red";
-            alert("⚠️ WARNING: Heart rate spike (136 BPM) and High BP detected by MEDIGUARD wristband! Pre-alert notification queued.");
+            alert("⚠️ Vitals Alert: Elevated heart rate and blood pressure detected from wristband sensor. Please verify patient status or trigger SOS if distressed.");
         }
 
         function quickQuery(text) {
@@ -206,20 +260,23 @@
             const out = document.getElementById('ai-output');
             
             if(!query) {
-                out.innerText = "Please select or enter a health question.";
+                out.innerText = "Please enter a health inquiry.";
                 return;
             }
 
-            if(query.includes('dizziness')) {
-                out.innerText = "🤖 MEDIGUARD AI: Sit down safely, stay hydrated, and rest. If accompanied by chest tightness, tap the SOS trigger.";
-            } else if(query.includes('next pill')) {
-                out.innerText = "🤖 MEDIGUARD AI: Your next scheduled medicine is Metformin (500mg) at 8:00 AM.";
-            } else if(query.includes('bp range')) {
-                out.innerText = "🤖 MEDIGUARD AI: Normal BP is around 120/80 mmHg. Above 140/90 is considered high.";
+            if(query.includes('dizzy') || query.includes('dizziness')) {
+                out.innerText = "🤖 MEDIGUARD AI: Assist patient to sit or lie down immediately in a shaded area. Provide small sips of water. If dizziness persists beyond 5 minutes or includes chest pain, press the red SOS button.";
+            } else if(query.includes('missed') || query.includes('pill')) {
+                out.innerText = "🤖 MEDIGUARD AI: If a dose was missed, take it as soon as you remember. However, if it is almost time for the next scheduled dose, skip the missed one. Do not double up doses.";
+            } else if(query.includes('bp') || query.includes('blood pressure')) {
+                out.innerText = "🤖 MEDIGUARD AI: Normal resting blood pressure is around 120/80 mmHg. Readings consistently above 140/90 require consultation with your primary rural health worker.";
             } else {
-                out.innerText = "🤖 MEDIGUARD AI: Query recorded. Please ensure regular hydration and consult your nearest primary healthcare worker if symptoms persist.";
+                out.innerText = "🤖 MEDIGUARD AI: Query logged. Ensure the elder stays hydrated and calm. Contact your local Primary Health Centre (PHC) if symptoms seem abnormal.";
             }
         }
+
+        // Initialize medicines list on load
+        renderMedicines();
     </script>
 </body>
 </html>
