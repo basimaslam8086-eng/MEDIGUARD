@@ -1,418 +1,290 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>MEDIGUARD - Rural Healthcare Gateway</title>
-    <style>
-        :root {
-            --bg-main: #0B1120;
-            --card-bg: #1E293B;
-            --card-border: #334155;
-            --accent-blue: #38BDF8;
-            --accent-green: #22C55E;
-            --accent-red: #EF4444;
-            --text-main: #F8FAFC;
-            --text-muted: #94A3B8;
+<script>
+    // State
+    let currentLang = 'en-IN';
+    let profile = JSON.parse(localStorage.getItem('mg_prof_v2')) || { name: "Grandma Mary", sector: "Perinjanam W-4" };
+    let medicines = JSON.parse(localStorage.getItem('mg_meds_v2')) || [{ id: 1, name: "Atenolol 50mg", time: "Morning • 8:00 AM", taken: false }];
+    let sosContacts = JSON.parse(localStorage.getItem('mg_sos_v2')) || [
+        { name: "Family Primary Contact", phone: "+919847000000" },
+        { name: "ASHA Health Worker", phone: "+919847111111" }
+    ];
+
+    // System Init
+    document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        loadProfileData();
+        renderMedicines();
+        renderSOS();
+    });
+
+    function setupEventListeners() {
+        // Profile Drawer
+        document.getElementById('profile-toggle-btn').onclick = () => {
+            const drawer = document.getElementById('settings-drawer');
+            drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
+        };
+        document.getElementById('close-drawer-btn').onclick = () => document.getElementById('settings-drawer').style.display = 'none';
+        document.getElementById('save-profile-btn').onclick = saveProfile;
+
+        // Languages
+        document.getElementById('btn-lang-en').onclick = () => setLang('en-IN');
+        document.getElementById('btn-lang-hi').onclick = () => setLang('hi-IN');
+        document.getElementById('btn-lang-ml').onclick = () => setLang('ml-IN');
+
+        // Form buttons
+        document.getElementById('add-med-btn').onclick = addMedicine;
+        document.getElementById('add-sos-btn').onclick = addSOS;
+        document.getElementById('trigger-sos-btn').onclick = triggerSOSCall;
+        document.getElementById('ask-ai-btn').onclick = runAI;
+        document.getElementById('mic-btn').onclick = startVoice;
+        document.getElementById('spike-btn').onclick = simulateSpike;
+        document.getElementById('ble-btn').onclick = pairBLE;
+    }
+
+    // Language Engine
+    function setLang(code) {
+        currentLang = code;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        if(code === 'en-IN') {
+            document.getElementById('btn-lang-en').classList.add('active');
+            document.getElementById('lang-tag').innerText = "English";
+        } else if(code === 'hi-IN') {
+            document.getElementById('btn-lang-hi').classList.add('active');
+            document.getElementById('lang-tag').innerText = "हिंदी";
+        } else if(code === 'ml-IN') {
+            document.getElementById('btn-lang-ml').classList.add('active');
+            document.getElementById('lang-tag').innerText = "മലയാളം";
+        }
+    }
+
+    // Profile Management
+    function loadProfileData() {
+        document.getElementById('display-name').innerText = profile.name;
+        document.getElementById('edit-name').value = profile.name;
+        document.getElementById('edit-sector').value = profile.sector;
+    }
+
+    function saveProfile() {
+        profile.name = document.getElementById('edit-name').value || "Grandma Mary";
+        profile.sector = document.getElementById('edit-sector').value || "Sector 1";
+        localStorage.setItem('mg_prof_v2', JSON.stringify(profile));
+        document.getElementById('display-name').innerText = profile.name;
+        document.getElementById('settings-drawer').style.display = 'none';
+        alert("Profile saved successfully!");
+    }
+
+    // Medicines
+    function renderMedicines() {
+        const list = document.getElementById('meds-list');
+        list.innerHTML = '';
+        let pending = 0;
+        medicines.forEach((m, idx) => {
+            if(!m.taken) pending++;
+            const row = document.createElement('div');
+            row.className = 'list-row';
+            row.innerHTML = `
+                <div>
+                    <b style="${m.taken ? 'text-decoration:line-through; color:var(--text-muted);':''}">${m.name}</b><br>
+                    <span style="font-size:10px; color:var(--text-muted);">⏰ ${m.time}</span>
+                </div>
+                <div>
+                    <button class="btn-sm ${m.taken ? 'btn-action':'btn-take'}" onclick="toggleMed(${idx})">${m.taken ? 'Done ✓':'Take'}</button>
+                    <button class="btn-sm btn-del" onclick="delMed(${idx})">✕</button>
+                </div>
+            `;
+            list.appendChild(row);
+        });
+        document.getElementById('pill-badge').innerText = pending + " Pending";
+        localStorage.setItem('mg_meds_v2', JSON.stringify(medicines));
+    }
+
+    function addMedicine() {
+        const name = document.getElementById('med-name-in').value;
+        const time = document.getElementById('med-time-in').value;
+        if(!name) return alert("Please enter medicine name.");
+        medicines.push({ id: Date.now(), name, time: time || "Daily", taken: false });
+        document.getElementById('med-name-in').value = '';
+        document.getElementById('med-time-in').value = '';
+        renderMedicines();
+    }
+
+    window.toggleMed = function(i) { medicines[i].taken = !medicines[i].taken; renderMedicines(); };
+    window.delMed = function(i) { medicines.splice(i, 1); renderMedicines(); };
+
+    // SOS Contacts
+    function renderSOS() {
+        const preview = document.getElementById('sos-preview-list');
+        const manage = document.getElementById('sos-manage-list');
+        preview.innerHTML = '';
+        manage.innerHTML = '';
+
+        sosContacts.forEach((c, i) => {
+            const pRow = document.createElement('div');
+            pRow.className = 'list-row';
+            pRow.innerHTML = <span>📞 <b>${c.name}</b> (${c.phone})</span>;
+            preview.appendChild(pRow);
+
+            const mRow = document.createElement('div');
+            mRow.className = 'list-row';
+            mRow.innerHTML = <span><b>${c.name}</b>: ${c.phone}</span><button class="btn-sm btn-del" onclick="delSOS(${i})">✕</button>;
+            manage.appendChild(mRow);
+        });
+        document.getElementById('sos-badge').innerText = sosContacts.length + " Contacts";
+        localStorage.setItem('mg_sos_v2', JSON.stringify(sosContacts));
+    }
+
+    function addSOS() {
+        const name = document.getElementById('new-sos-name').value;
+        const phone = document.getElementById('new-sos-phone').value;
+        if(!name || !phone) return alert("Enter contact name and number.");
+        sosContacts.push({ name, phone });
+        document.getElementById('new-sos-name').value = '';
+        document.getElementById('new-sos-phone').value = '';
+        renderSOS();
+    }
+
+    window.delSOS = function(i) {
+        if(sosContacts.length <= 1) return alert("At least 1 SOS contact is required.");
+        sosContacts.splice(i, 1);
+        renderSOS();
+    };
+
+    function triggerSOSCall() {
+        if(sosContacts.length === 0) return;
+        const target = sosContacts[0];
+        if(confirm(🚨 EMERGENCY SOS DISPATCH!\nCalling primary contact: ${target.name} (${target.phone}))) {
+            window.location.href = tel:${target.phone};
+        }
+    }
+
+    // --- ENHANCED VOICE & AI ENGINE ---
+
+    function speakText(text) {
+        if (!('speechSynthesis' in window)) return;
+        
+        window.speechSynthesis.cancel(); // Clear queued audio
+        
+        const ut = new SpeechSynthesisUtterance(text);
+        ut.lang = currentLang;
+        ut.rate = 0.85; // Slightly slower for elderly clarity
+        ut.volume = 1.0;
+
+        // Force voice selection if available
+        const voices = window.speechSynthesis.getVoices();
+        const matchingVoice = voices.find(v => v.lang.startsWith(currentLang.split('-')[0]));
+        if (matchingVoice) ut.voice = matchingVoice;
+
+        window.speechSynthesis.speak(ut);
+    }
+
+    function startVoice() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Voice input is not supported in this browser mode. Please try typing your question or use standard Chrome.");
+            return;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); padding: 12px; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
-        
-        .app-container { width: 100%; max-width: 460px; background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px); border-radius: 28px; padding: 20px; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; }
+        const rec = new SpeechRecognition();
+        rec.lang = currentLang;
+        rec.continuous = false;
+        rec.interimResults = false;
 
-        /* Header & Profile */
-        .brand-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--card-border); }
-        .brand-title { font-size: 20px; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 8px; }
-        .brand-title span { color: var(--accent-blue); }
-        
-        .profile-btn { display: flex; align-items: center; gap: 8px; background: #0F172A; border: 1px solid var(--accent-blue); padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s ease; }
-        .profile-btn:active { transform: scale(0.95); }
-        .profile-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0284C7, #38BDF8); display: flex; align-items: center; justify-content: center; font-size: 14px; }
-        .profile-name { font-size: 12px; font-weight: 700; color: #E2E8F0; }
+        const inputField = document.getElementById('ai-input');
+        inputField.placeholder = "Listening... Speak now...";
 
-        /* Language Bar */
-        .lang-bar { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 14px; background: #0F172A; padding: 6px; border-radius: 12px; border: 1px solid var(--card-border); }
-        .lang-btn { flex: 1; padding: 6px; border: none; border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer; }
-        .lang-btn.active { background: var(--accent-blue); color: #000; }
-
-        /* Cards */
-        .card { background: #0F172A; border-radius: 20px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--card-border); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .card-title { font-size: 14px; font-weight: 700; color: #E2E8F0; display: flex; align-items: center; gap: 6px; }
-
-        /* Badges */
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
-        .badge-green { background: rgba(34, 197, 94, 0.15); color: #4ADE80; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.3); }
-        .badge-red { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-
-        /* Vitals */
-        .vitals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .vital-box { background: #1E293B; padding: 14px; border-radius: 14px; text-align: center; border: 1px solid var(--card-border); }
-        .vital-val { font-size: 24px; font-weight: 800; color: var(--accent-blue); margin-top: 4px; }
-
-        /* Buttons & Inputs */
-        .btn { width: 100%; border: none; border-radius: 14px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
-        .btn:active { transform: scale(0.97); }
-        .btn-sos { background: linear-gradient(135deg, #DC2626, #EF4444); color: white; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); font-size: 14px; }
-        .btn-action { background: #334155; color: var(--text-main); }
-        .btn-voice { background: linear-gradient(135deg, #0284C7, #38BDF8); color: white; }
-
-        .form-input { width: 100%; padding: 10px; background: #1E293B; border: 1px solid var(--card-border); border-radius: 10px; color: white; font-size: 12px; margin-top: 6px; outline: none; }
-
-        /* Dynamic Lists */
-        .pill-row, .contact-row { display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 10px 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border); }
-        .pill-info { display: flex; flex-direction: column; gap: 2px; }
-        .pill-name { font-size: 13px; font-weight: 700; }
-        .pill-time { font-size: 11px; color: var(--text-muted); }
-        .pill-actions { display: flex; gap: 6px; align-items: center; }
-        .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-        .btn-take { background: var(--accent-green); color: white; }
-        .btn-del { background: rgba(239, 68, 68, 0.2); color: #F87171; }
-
-        /* Overlay / Settings Modal */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 17, 32, 0.9); backdrop-filter: blur(12px); z-index: 999; justify-content: center; align-items: center; padding: 16px; }
-        .modal-content { width: 100%; max-width: 420px; background: #0F172A; border-radius: 24px; padding: 20px; border: 1px solid var(--card-border); max-height: 85vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
-    </style>
-</head>
-<body>
-
-    <div class="app-container">
-        <!-- Brand Bar with Profile Settings Button -->
-        <div class="brand-bar">
-            <div class="brand-title">🛡️ MEDI<span>GUARD</span></div>
-            <div class="profile-btn" onclick="openProfileModal()">
-                <div class="profile-avatar">👵</div>
-                <span class="profile-name" id="display-profile-name">Grandma Mary</span>
-                <span style="font-size:10px; color:var(--accent-blue);">⚙️</span>
-            </div>
-        </div>
-
-        <!-- Language Selection Bar -->
-        <div class="lang-bar">
-            <button class="lang-btn active" id="lang-en" onclick="setLanguage('en-IN')">English</button>
-            <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi-IN')">हिंदी (Hindi)</button>
-            <button class="lang-btn" id="lang-ml" onclick="setLanguage('ml-IN')">മലയാളം</button>
-        </div>
-
-        <!-- Vitals & BLE Sensor -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">❤️ Continuous Vitals (BLE Band)</div>
-                <span class="badge badge-green" id="vitals-badge">Normal</span>
-            </div>
-            <div class="vitals-grid">
-                <div class="vital-box">
-                    <span style="font-size: 11px; color: var(--text-muted);" id="lbl-pulse">Pulse Rate</span>
-                    <div class="vital-val" id="hr-display">72 <span style="font-size:12px;">BPM</span></div>
-                </div>
-                <div class="vital-box">
-                    <span style="font-size: 11px; color: var(--text-muted);" id="lbl-bp">Blood Pressure</span>
-                    <div class="vital-val" id="bp-display">120/80</div>
-                </div>
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: 10px;">
-                <button class="btn btn-action" style="flex:1;" onclick="connectBLE()">📡 Pair BLE</button>
-                <button class="btn btn-action" style="flex:1; background: rgba(239, 68, 68, 0.2); color: #F87171;" onclick="simulateSpike()">⚠️ Test Spike</button>
-            </div>
-        </div>
-
-        <!-- Medicine Schedule -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">💊 Medication Reminders</div>
-                <span class="badge badge-blue" id="pill-badge">0 Pending</span>
-            </div>
-            <div id="medicines-list"></div>
-            <div style="margin-top: 12px; border-top: 1px solid var(--card-border); padding-top: 10px;">
-                <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ADD NEW MEDICATION</span>
-                <input type="text" id="med-name" class="form-input" placeholder="Medicine (e.g. Paracetamol 500mg)">
-                <input type="text" id="med-time" class="form-input" placeholder="Time (e.g. Morning • 8:00 AM)">
-                <button class="btn btn-action" style="background: var(--accent-blue); color: #000;" onclick="addMedicine()">+ Add Medicine</button>
-            </div>
-        </div>
-
-        <!-- SOS Gateway -->
-        <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
-            <div class="card-header">
-                <div class="card-title" style="color: #F87171;">🚨 Emergency SOS Gateway</div>
-                <span class="badge badge-red" id="sos-count-badge">Contacts</span>
-            </div>
-            <div id="sos-preview-list"></div>
-            <button class="btn btn-sos" onclick="triggerSOS()">DISPATCH SOS CALL</button>
-        </div>
-
-        <!-- AI Voice & Text Assistant -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">🤖 Voice Health Advisor</div>
-                <span class="badge badge-blue" id="current-lang-tag">English</span>
-            </div>
-            <input type="text" id="ai-input" class="form-input" placeholder="Ask health question or use voice...">
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-                <button class="btn btn-voice" style="flex: 1;" onclick="startVoiceInput()">🎙️ Speak</button>
-                <button class="btn btn-action" style="flex: 1;" onclick="processAIQuery()">Ask AI</button>
-            </div>
-            <div id="ai-output" style="font-size: 12px; color: var(--accent-blue); margin-top: 12px; line-height: 1.4; font-weight: 600; background: #1E293B; padding: 10px; border-radius: 10px; min-height: 40px;">
-                🤖 AI Response will appear here...
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile & Contacts Modal Overlay -->
-    <div class="modal-overlay" id="profile-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 style="color: white; font-size: 16px;">⚙️ Patient Profile & SOS Contacts</h3>
-                <button class="btn-sm btn-del" onclick="closeProfileModal()">Close ✕</button>
-            </div>
-
-            <div style="margin-bottom: 16px;">
-                <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">PATIENT NAME</label>
-                <input type="text" id="edit-profile-name" class="form-input" value="Grandma Mary">
-                
-                <label style="font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 10px; display: block;">SECTOR / SECTOR ID</label>
-                <input type="text" id="edit-profile-sector" class="form-input" value="Perinjanam Sector 4">
-                
-                <button class="btn btn-action" style="background: var(--accent-green); color: white;" onclick="saveProfile()">Save Profile</button>
-            </div>
-
-            <div style="border-top: 1px solid var(--card-border); padding-top: 14px;">
-                <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ADD EMERGENCY SOS NUMBER (>2 Allowed)</label>
-                <input type="text" id="new-sos-name" class="form-input" placeholder="Contact Name (e.g. Son / ASHA Worker)">
-                <input type="text" id="new-sos-phone" class="form-input" placeholder="Phone Number (e.g. +919847000000)">
-                <button class="btn btn-action" style="background: var(--accent-blue); color: black;" onclick="addSOSContact()">+ Add Contact</button>
-                
-                <div id="sos-manage-list" style="margin-top: 10px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Persistent State
-        let currentLang = 'en-IN';
-        let profile = JSON.parse(localStorage.getItem('mg_profile')) || { name: "Grandma Mary", sector: "Perinjanam" };
-        let medicines = JSON.parse(localStorage.getItem('mg_meds')) || [
-            { id: 1, name: "Atenolol 50mg", time: "Morning • 8:00 AM", taken: false }
-        ];
-        let sosContacts = JSON.parse(localStorage.getItem('mg_sos')) || [
-            { name: "Family / Primary Care", phone: "+919847000000" },
-            { name: "Local ASHA Worker", phone: "+919847111111" }
-        ];
-
-        // System Startup
-        window.onload = function() {
-            loadProfile();
-            renderMedicines();
-            renderSOS();
+        rec.onresult = (e) => {
+            const spokenText = e.results[0][0].transcript;
+            inputField.value = spokenText;
+            runAI();
         };
 
-        function setLanguage(langCode) {
-            currentLang = langCode;
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            if(langCode === 'en-IN') {
-                document.getElementById('lang-en').classList.add('active');
-                document.getElementById('current-lang-tag').innerText = "English";
-            } else if(langCode === 'hi-IN') {
-                document.getElementById('lang-hi').classList.add('active');
-                document.getElementById('current-lang-tag').innerText = "हिंदी (Hindi)";
-            } else if(langCode === 'ml-IN') {
-                document.getElementById('lang-ml').classList.add('active');
-                document.getElementById('current-lang-tag').innerText = "മലയാളം";
+        rec.onerror = (err) => {
+            console.error("Speech Error:", err);
+            inputField.placeholder = "Ask health question or speak...";
+            if (err.error === 'not-allowed') {
+                alert("Microphone permission was denied. Please allow microphone access in Chrome settings.");
             }
+        };
+
+        rec.onend = () => {
+            inputField.placeholder = "Ask health question or speak...";
+        };
+
+        try {
+            rec.start();
+        } catch (ex) {
+            console.error("Mic start error:", ex);
+        }
+    }
+
+    function runAI() {
+        const inputField = document.getElementById('ai-input');
+        const q = inputField.value.trim().toLowerCase();
+        const out = document.getElementById('ai-output');
+        let res = "";
+
+        if (!q) {
+            res = currentLang === 'hi-IN' ? "कृपया अपना प्रश्न लिखें या बोलें।" : 
+                  (currentLang === 'ml-IN' ? "ദയവായി ചോദ്യം ചോദിക്കുക." : "Please type or speak your health question.");
+            out.innerText = "🤖 " + res;
+            speakText(res);
+            return;
         }
 
-        // Profile Modal Logic
-        function openProfileModal() {
-            document.getElementById('profile-modal').style.display = 'flex';
-        }
-
-        function closeProfileModal() {
-            document.getElementById('profile-modal').style.display = 'none';
-        }
-
-        function loadProfile() {
-            document.getElementById('display-profile-name').innerText = profile.name;
-            document.getElementById('edit-profile-name').value = profile.name;
-            document.getElementById('edit-profile-sector').value = profile.sector;
-        }
-
-        function saveProfile() {
-            profile.name = document.getElementById('edit-profile-name').value;
-            profile.sector = document.getElementById('edit-profile-sector').value;
-            localStorage.setItem('mg_profile', JSON.stringify(profile));
-            document.getElementById('display-profile-name').innerText = profile.name;
-            alert("Profile Updated Successfully!");
-            closeProfileModal();
-        }
-
-        // Medicine Management
-        function renderMedicines() {
-            const container = document.getElementById('medicines-list');
-            container.innerHTML = '';
-            let pending = 0;
-            medicines.forEach((m, idx) => {
-                if(!m.taken) pending++;
-                const div = document.createElement('div');
-                div.className = 'pill-row';
-                div.innerHTML = `
-                    <div class="pill-info">
-                        <span class="pill-name" style="${m.taken ? 'text-decoration:line-through; color:var(--text-muted);':''}">${m.name}</span>
-                        <span class="pill-time">⏰ ${m.time}</span>
-                    </div>
-                    <div class="pill-actions">
-                        <button class="btn-sm ${m.taken ? 'btn-action':'btn-take'}" onclick="toggleMed(${idx})">${m.taken ? 'Done ✓':'Take'}</button>
-                        <button class="btn-sm btn-del" onclick="deleteMed(${idx})">✕</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-            document.getElementById('pill-badge').innerText = pending + " Pending";
-            localStorage.setItem('mg_meds', JSON.stringify(medicines));
-        }
-
-        function addMedicine() {
-            const name = document.getElementById('med-name').value;
-            const time = document.getElementById('med-time').value;
-            if(!name) return alert("Please enter medicine name.");
-            medicines.push({ id: Date.now(), name, time: time || "Daily", taken: false });
-            document.getElementById('med-name').value = '';
-            document.getElementById('med-time').value = '';
-            renderMedicines();
-        }
-
-        function toggleMed(i) { medicines[i].taken = !medicines[i].taken; renderMedicines(); }
-        function deleteMed(i) { medicines.splice(i, 1); renderMedicines(); }
-
-        // SOS Contacts Management
-        function renderSOS() {
-            const preview = document.getElementById('sos-preview-list');
-            const manage = document.getElementById('sos-manage-list');
-            preview.innerHTML = '';
-            manage.innerHTML = '';
-
-            sosContacts.forEach((c, i) => {
-                const row = document.createElement('div');
-                row.className = 'contact-row';
-                row.innerHTML = <span>📞 <b>${c.name}</b> (${c.phone})</span>;
-                preview.appendChild(row);
-
-                const mRow = document.createElement('div');
-                mRow.className = 'contact-row';
-                mRow.innerHTML = <span><b>${c.name}</b>: ${c.phone}</span><button class="btn-sm btn-del" onclick="deleteSOS(${i})">✕</button>;
-                manage.appendChild(mRow);
-            });
-            document.getElementById('sos-count-badge').innerText = sosContacts.length + " Contacts";
-            localStorage.setItem('mg_sos', JSON.stringify(sosContacts));
-        }
-
-        function addSOSContact() {
-            const name = document.getElementById('new-sos-name').value;
-            const phone = document.getElementById('new-sos-phone').value;
-            if(!name || !phone) return alert("Enter contact name and phone number");
-            sosContacts.push({ name, phone });
-            document.getElementById('new-sos-name').value = '';
-            document.getElementById('new-sos-phone').value = '';
-            renderSOS();
-        }
-
-        function deleteSOS(i) {
-            if(sosContacts.length <= 1) return alert("Must keep at least 1 emergency contact.");
-            sosContacts.splice(i, 1);
-            renderSOS();
-        }
-
-        function triggerSOS() {
-            if(sosContacts.length === 0) return;
-            const primary = sosContacts[0];
-            if(confirm(🚨 EMERGENCY CALL!\nCalling primary contact: ${primary.name} (${primary.phone}))) {
-                window.location.href = tel:${primary.phone};
-            }
-        }
-
-        // Voice & Multilingual AI Engine
-        function startVoiceInput() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!SpeechRecognition) return alert("Voice speech recognition not supported on this browser.");
-
-            const recognition = new SpeechRecognition();
-            recognition.lang = currentLang;
-            const input = document.getElementById('ai-input');
-            input.placeholder = "Listening... Speak now...";
-
-            recognition.onresult = function(e) {
-                input.value = e.results[0][0].transcript;
-                processAIQuery();
-            };
-            recognition.start();
-        }
-
-        function speakOut(text) {
-            if('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const ut = new SpeechSynthesisUtterance(text);
-                ut.lang = currentLang;
-                ut.rate = 0.85; // Clear reading pace
-                window.speechSynthesis.speak(ut);
-            }
-        }
-
-        function processAIQuery() {
-            const query = document.getElementById('ai-input').value.toLowerCase();
-            const output = document.getElementById('ai-output');
-            let response = "";
-
-            if(currentLang === 'hi-IN') {
-                if(query.includes('चक्कर') || query.includes('dizzy')) {
-                    response = "मरीज को तुरंत छांव में बिठाएं और पानी की घूंट दें। यदि चक्कर बना रहे तो एसओएस लाल बटन दबाएं।";
-                } else if(query.includes('दवा') || query.includes('pill')) {
-                    response = "छूटी हुई दवा याद आते ही लें। यदि अगली खुराक का समय करीब है तो दोहरी खुराक न लें।";
-                } else {
-                    response = "स्वास्थ्य सलाह दर्ज की गई। मरीज को शांत रखें और आवश्यकता पड़ने पर प्राथमिक स्वास्थ्य केंद्र संपर्क करें।";
-                }
-            } else if(currentLang === 'ml-IN') {
-                if(query.includes('തലചുറ്റൽ') || query.includes('dizzy')) {
-                    response = "രോഗിയെ ഉടൻ തണലിൽ ഇരുത്തുക, അല്പം വെള്ളം നൽകുക. തലചുറ്റൽ തുടരുകയാണെങ്കിൽ ചുവന്ന SOS ബട്ടൺ അമർത്തുക.";
-                } else if(query.includes('മരുന്ന്') || query.includes('pill')) {
-                    response = "വിട്ടുപോയ മരുന്ന് ഓർമ്മവരുമ്പോൾ കഴിക്കുക. അടുത്ത മരുന്നിന്റെ സമയമായെങ്കിൽ ഇരട്ടി ഡോസ് കഴിക്കരുത്.";
-                } else {
-                    response = "ചോദ്യം ലഭിച്ചു. രോഗിയെ ശാന്തമായി ഇരുത്തുക, ആവശ്യമെങ്കിൽ പ്രാഥമിക ആരോഗ്യ കേന്ദ്രവുമായി ബന്ധപ്പെടുക.";
-                }
+        // Knowledge Base Logic
+        if (currentLang === 'hi-IN') {
+            if (q.includes('चक्कर') || q.includes('dizzy') || q.includes('dizziness')) {
+                res = "मरीज को तुरंत छांव में बिठाएं और पानी की घूंट दें। यदि चक्कर बना रहे तो लाल एसओएस बटन दबाएं।";
+            } else if (q.includes('दवा') || q.includes('pill') || q.includes('missed')) {
+                res = "छूटी हुई दवा याद आते ही लें। यदि अगली खुराक का समय करीब है तो दोहरी खुराक न लें।";
+            } else if (q.includes('बीपी') || q.includes('bp') || q.includes('blood pressure')) {
+                res = "सामान्य बीपी 120/80 होता है। यदि बीपी 140/90 से अधिक रहे तो डॉक्टर से संपर्क करें।";
             } else {
-                if(query.includes('dizzy') || query.includes('dizziness')) {
-                    response = "Assist patient to sit down in a shaded area and sip water. If dizzy spells continue, press the SOS button.";
-                } else if(query.includes('missed') || query.includes('pill')) {
-                    response = "Take missed medication as soon as remembered. Never double up on missed doses.";
-                } else {
-                    response = "Query processed. Keep patient hydrated. Contact your primary health worker if symptoms persist.";
-                }
+                res = "प्रश्न दर्ज कर लिया गया है। मरीज को शांत और हवादार जगह पर रखें। परेशानी होने पर स्वास्थ्य कार्यकर्ता को कॉल करें।";
             }
-
-            output.innerText = "🤖 " + response;
-            speakOut(response);
+        } else if (currentLang === 'ml-IN') {
+            if (q.includes('തലചുറ്റൽ') || q.includes('dizzy') || q.includes('dizziness')) {
+                res = "രോഗിയെ ഉടൻ തണലിൽ ഇരുത്തി വെള്ളം നൽകുക. തലചുറ്റൽ തുടരുകയാണെങ്കിൽ SOS ബട്ടൺ അമർത്തുക.";
+            } else if (q.includes('മരുന്ന്') || q.includes('pill') || q.includes('missed')) {
+                res = "വിട്ടുപോയ മരുന്ന് ഓർമ്മവരുമ്പോൾ കഴിക്കുക. അടുത്ത മരുന്നിന്റെ സമയമായെങ്കിൽ ഇരട്ടി ഡോസ് കഴിക്കരുത്.";
+            } else if (q.includes('ബിപി') || q.includes('bp') || q.includes('blood pressure')) {
+                res = "സാധാരണ ബിപി 120/80 ആണ്. ബിപി ഉയർന്നാൽ ഉടൻ ആശാ വർക്കറെ ബന്ധപ്പെടുക.";
+            } else {
+                res = "ചോദ്യം സ്വീകരിച്ചു. രോഗിയെ ശാന്തമായി ഇരുത്തുക, ആവശ്യമെങ്കിൽ പ്രാഥമിക ആരോഗ്യ കേന്ദ്രവുമായി ബന്ധപ്പെടുക.";
+            }
+        } else {
+            if (q.includes('dizzy') || q.includes('dizziness') || q.includes('faint')) {
+                res = "Assist the patient to sit or lie down in a shaded area and sip water. If dizzy spells persist, dispatch the SOS call.";
+            } else if (q.includes('missed') || q.includes('pill') || q.includes('medication')) {
+                res = "Take missed medication as soon as remembered. If it is almost time for the next scheduled dose, skip the missed one. Never double doses.";
+            } else if (q.includes('bp') || q.includes('blood pressure') || q.includes('high')) {
+                res = "Normal resting Blood Pressure is around 120/80. Readings consistently above 140/90 require consultation with your primary health worker.";
+            } else {
+                res = "Health query processed. Keep the patient calm and hydrated. Contact your local health center if symptoms persist.";
+            }
         }
 
-        function simulateSpike() {
-            document.getElementById('hr-display').innerText = "145 BPM";
-            document.getElementById('bp-display').innerText = "165/105";
-            const b = document.getElementById('vitals-status') || document.getElementById('vitals-badge');
-            b.innerText = "CRITICAL";
-            b.className = "badge badge-red";
-            
-            let alertMsg = currentLang === 'hi-IN' ? "चेतावनी! उच्च रक्तचाप का पता चला!" : "Warning! Critical Blood Pressure spike detected!";
-            speakOut(alertMsg);
-            alert(alertMsg);
-        }
+        out.innerText = "🤖 " + res;
+        speakText(res);
+    }
 
-        async function connectBLE() {
-            try {
-                const d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-                alert("Paired with: " + d.name);
-            } catch(e) { alert("Bluetooth scan canceled."); }
-        }
-    </script>
-</body>
-</html>
+    function simulateSpike() {
+        document.getElementById('hr-display').innerText = "148 BPM";
+        document.getElementById('bp-display').innerText = "165/105";
+        document.getElementById('vitals-badge').innerText = "CRITICAL";
+        document.getElementById('vitals-badge').className = "badge badge-red";
+        
+        let alertMsg = currentLang === 'hi-IN' ? "चेतावनी! उच्च रक्तचाप का पता चला!" : 
+                      (currentLang === 'ml-IN' ? "മുന്നറിയിപ്പ്! ഉയർന്ന രക്തസമ്മർദ്ദം കണ്ടെത്തി!" : "Warning! Critical Blood Pressure spike detected!");
+        
+        document.getElementById('ai-output').innerText = "⚠️ " + alertMsg;
+        speakText(alertMsg);
+        alert(alertMsg);
+    }
+
+    async function pairBLE() {
+        try {
+            const d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+            alert("Paired with: " + d.name);
+        } catch(e) { alert("Bluetooth scan canceled."); }
+    }
+</script>
