@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <title>MEDIGUARD - Rural Health IoT Portal</title>
+    <title>MEDIGUARD - Rural Elderly Care System</title>
     <style>
         :root {
             --bg-main: #0B1120;
@@ -20,21 +20,19 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); padding: 12px; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
         
-        .app-container { width: 100%; max-width: 440px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 28px; padding: 20px; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .app-container { width: 100%; max-width: 460px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 28px; padding: 20px; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; }
 
-        /* Brand Header */
+        /* Brand Header & Profile Button */
         .brand-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--card-border); }
-        .brand-title { font-size: 22px; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
+        .brand-title { font-size: 20px; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 8px; }
         .brand-title span { color: var(--accent-blue); }
         
-        /* User Profile */
-        .profile-card { display: flex; align-items: center; gap: 14px; background: #0F172A; padding: 12px 16px; border-radius: 20px; border: 1px solid var(--card-border); margin-bottom: 18px; }
-        .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0284C7, #38BDF8); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--accent-blue); position: relative; }
-        .online-dot { width: 12px; height: 12px; background: var(--accent-green); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid #0F172A; }
-        .profile-meta h3 { font-size: 16px; font-weight: 700; }
-        .profile-meta p { font-size: 11px; color: var(--text-muted); }
+        .profile-btn { display: flex; align-items: center; gap: 8px; background: #0F172A; border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s ease; }
+        .profile-btn:active { transform: scale(0.95); }
+        .profile-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #0284C7, #38BDF8); display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1.5px solid var(--accent-blue); }
+        .profile-name { font-size: 12px; font-weight: 700; color: #E2E8F0; }
 
-        /* Cards Styling */
+        /* Cards */
         .card { background: #0F172A; border-radius: 20px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--card-border); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .card-title { font-size: 14px; font-weight: 700; color: #E2E8F0; display: flex; align-items: center; gap: 6px; }
@@ -45,22 +43,21 @@
         .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.3); }
         .badge-red { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
-        /* Vitals Display */
+        /* Vitals */
         .vitals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .vital-box { background: #1E293B; padding: 14px; border-radius: 14px; text-align: center; border: 1px solid var(--card-border); }
         .vital-val { font-size: 24px; font-weight: 800; color: var(--accent-blue); margin-top: 4px; }
 
-        /* Buttons & Inputs */
+        /* Buttons & Forms */
         .btn { width: 100%; border: none; border-radius: 14px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
         .btn:active { transform: scale(0.97); }
         .btn-sos { background: linear-gradient(135deg, #DC2626, #EF4444); color: white; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); font-size: 14px; }
         .btn-action { background: #334155; color: var(--text-main); }
-        .btn-action:hover { background: #475569; }
-        
-        .form-input { width: 100%; padding: 10px; background: #1E293B; border: 1px solid var(--card-border); border-radius: 10px; color: white; font-size: 12px; margin-top: 6px; outline: none; }
-        .form-input:focus { border-color: var(--accent-blue); }
+        .btn-voice { background: linear-gradient(135deg, #0284C7, #38BDF8); color: white; }
 
-        /* Pills List */
+        .form-input { width: 100%; padding: 10px; background: #1E293B; border: 1px solid var(--card-border); border-radius: 10px; color: white; font-size: 12px; margin-top: 6px; outline: none; }
+
+        /* Medicine Lists */
         .pill-row { display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 10px 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border); }
         .pill-info { display: flex; flex-direction: column; gap: 2px; }
         .pill-name { font-size: 13px; font-weight: 700; }
@@ -70,121 +67,144 @@
         .btn-take { background: var(--accent-green); color: white; }
         .btn-del { background: rgba(239, 68, 68, 0.2); color: #F87171; }
 
-        /* Assistant Inputs */
-        .chip-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
-        .chip { background: #1E293B; color: var(--accent-blue); padding: 6px 12px; border-radius: 20px; font-size: 11px; border: 1px solid var(--card-border); cursor: pointer; }
-        .chip:hover { background: var(--card-border); }
+        /* SOS Contacts List */
+        .contact-row { display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 8px 12px; border-radius: 10px; margin-top: 6px; font-size: 12px; }
+
+        /* Modal / Settings Overlay */
+        .modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); border-radius: 28px; z-index: 100; padding: 20px; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Brand Header -->
+        <!-- Brand & Profile Header -->
         <div class="brand-bar">
             <div class="brand-title">🛡️ MEDI<span>GUARD</span></div>
-            <span class="badge badge-green">Rural Care v3.0</span>
-        </div>
-
-        <!-- User Profile Card -->
-        <div class="profile-card">
-            <div class="profile-avatar">
-                👵
-                <div class="online-dot"></div>
-            </div>
-            <div class="profile-meta">
-                <h3>Rural Elder Health Node</h3>
-                <p>📍 Sector: Perinjanam / Primary Care</p>
+            <div class="profile-btn" onclick="toggleModal(true)">
+                <div class="profile-avatar" id="header-avatar">👵</div>
+                <span class="profile-name" id="header-name">Grandma Mary</span>
             </div>
         </div>
 
-        <!-- Live Vitals Monitoring -->
+        <!-- Live Vitals Monitoring & Bluetooth Connection -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">❤️ Continuous Vitals (PPG)</div>
-                <span class="badge badge-green" id="vitals-status">Stable</span>
+                <div class="card-title">❤️ Vitals Stream (BLE Wristband)</div>
+                <span class="badge badge-green" id="vitals-status">Normal</span>
             </div>
             <div class="vitals-grid">
                 <div class="vital-box">
-                    <span style="font-size: 11px; color: var(--text-muted);">Pulse Rate</span>
-                    <div class="vital-val" id="hr-display">76 <span style="font-size:12px;">BPM</span></div>
+                    <span style="font-size: 11px; color: var(--text-muted);">Heart Rate</span>
+                    <div class="vital-val" id="hr-display">72 <span style="font-size:12px;">BPM</span></div>
                 </div>
                 <div class="vital-box">
                     <span style="font-size: 11px; color: var(--text-muted);">Blood Pressure</span>
                     <div class="vital-val" id="bp-display">120/80</div>
                 </div>
             </div>
-            <button class="btn btn-action" onclick="simulateSpike()">⚠️ Test Sensor Vitals Spike</button>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="btn btn-action" style="flex:1;" onclick="connectBLE()">📡 Pair Wristband</button>
+                <button class="btn btn-action" style="flex:1; background: rgba(239, 68, 68, 0.2); color: #F87171;" onclick="simulateSpike()">⚠️ Test Spike</button>
+            </div>
         </div>
 
         <!-- Editable Medicine Schedule -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">💊 Prescribed Medicines</div>
-                <span class="badge badge-blue" id="pill-count-badge">Active Schedule</span>
+                <div class="card-title">💊 Medication Reminders</div>
+                <span class="badge badge-blue" id="pill-count-badge">0 Pending</span>
             </div>
             
-            <div id="medicines-container">
-                <!-- Dynamically loaded via JS -->
-            </div>
+            <div id="medicines-container"></div>
 
-            <!-- Add Medicine Form -->
             <div style="margin-top: 12px; border-top: 1px solid var(--card-border); padding-top: 10px;">
                 <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ADD NEW MEDICATION</span>
-                <input type="text" id="new-med-name" class="form-input" placeholder="Medicine Name & Dosage (e.g. Atenolol 50mg)">
-                <input type="text" id="new-med-time" class="form-input" placeholder="Time (e.g. Evening • 6:00 PM)">
+                <input type="text" id="new-med-name" class="form-input" placeholder="Medicine Name (e.g. Paracetamol 500mg)">
+                <input type="text" id="new-med-time" class="form-input" placeholder="Time (e.g. 08:00 AM)">
                 <button class="btn btn-action" style="background: var(--accent-blue); color: #000;" onclick="addMedicine()">+ Add to Schedule</button>
             </div>
         </div>
 
-        <!-- One-Tap Emergency SOS with Editable Number -->
+        <!-- Multi-Contact SOS Gateway -->
         <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
             <div class="card-header">
                 <div class="card-title" style="color: #F87171;">🚨 Emergency SOS Gateway</div>
-                <span class="badge badge-red">Direct GSM Call</span>
+                <span class="badge badge-red" id="contact-count">1 Contact</span>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Configured Emergency Contact (Family / Health Worker):</p>
-            <input type="text" id="sos-number" class="form-input" value="+919847000000" placeholder="Enter Emergency Phone Number">
-            <button class="btn btn-sos" onclick="triggerSOS()">DISPATCH SOS EMERGENCY CALL</button>
+            <div id="sos-contacts-list"></div>
+            <button class="btn btn-sos" onclick="triggerSOS()">DISPATCH SOS EMERGENCY ALERT</button>
         </div>
 
-        <!-- AI Assistant -->
+        <!-- Voice AI Assistant -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">🤖 Rural Health AI Assistant</div>
-                <span class="badge badge-blue">Clinical Guidance</span>
+                <div class="card-title">🤖 Voice Health Assistant</div>
+                <span class="badge badge-blue">Malayalam & English</span>
             </div>
-            <div class="chip-group">
-                <span class="chip" onclick="quickQuery('What to do if feeling dizzy?')">💫 Dizziness</span>
-                <span class="chip" onclick="quickQuery('Missed morning pill')">⏰ Missed Pill</span>
-                <span class="chip" onclick="quickQuery('High BP symptoms')">📊 High BP</span>
+            <input type="text" id="ai-query" class="form-input" placeholder="Ask health question or tap Voice...">
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button class="btn btn-voice" style="flex: 1;" onclick="startVoiceInput()">🎙️ Talk to AI</button>
+                <button class="btn btn-action" style="flex: 1;" onclick="runAI()">Ask Text</button>
             </div>
-            <input type="text" id="ai-query" class="chat-input form-input" placeholder="Ask health question...">
-            <button class="btn btn-action" onclick="runAI()">Ask AI Advisor</button>
             <div id="ai-output" style="font-size: 12px; color: var(--accent-blue); margin-top: 10px; line-height: 1.4; font-weight: 600;"></div>
+        </div>
+
+        <!-- Profile & Settings Modal -->
+        <div class="modal" id="settings-modal">
+            <div class="modal-header">
+                <h3 style="color: white; font-size: 16px;">👤 Patient Profile & Contacts</h3>
+                <button class="btn-sm btn-del" onclick="toggleModal(false)">Close ✕</button>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">PATIENT NAME</label>
+                <input type="text" id="setting-name" class="form-input" value="Grandma Mary">
+                
+                <label style="font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 10px; display: block;">SECTOR / LOCATION</label>
+                <input type="text" id="setting-location" class="form-input" value="Perinjanam W-4">
+                
+                <button class="btn btn-action" style="background: var(--accent-green); color: white;" onclick="saveProfile()">Save Profile Info</button>
+            </div>
+
+            <div style="border-top: 1px solid var(--card-border); padding-top: 14px;">
+                <label style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ADD EMERGENCY SOS CONTACT</label>
+                <input type="text" id="new-contact-name" class="form-input" placeholder="Contact Name (e.g. Son / ASHA Worker)">
+                <input type="text" id="new-contact-phone" class="form-input" placeholder="Phone Number (e.g. +919847000000)">
+                <button class="btn btn-action" style="background: var(--accent-blue); color: black;" onclick="addSOSContact()">+ Add Contact</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Initial Default Medicines stored in browser memory
-        let medicines = JSON.parse(localStorage.getItem('mediguard_meds')) || [
-            { id: 1, name: "Metformin (500mg)", time: "Morning • 8:00 AM", taken: false },
-            { id: 2, name: "Aspirin (75mg)", time: "Afternoon • 1:30 PM", taken: false }
-        ];
+        // Data Store
+        let profile = JSON.parse(localStorage.getItem('mediguard_profile')) || { name: "Grandma Mary", location: "Perinjanam" };
+        let medicines = JSON.parse(localStorage.getItem('mediguard_meds')) || [{ id: 1, name: "Atenolol 50mg", time: "Morning • 8:00 AM", taken: false }];
+        let sosContacts = JSON.parse(localStorage.getItem('mediguard_sos')) || [{ name: "Primary Care / Family", phone: "+919847000000" }];
 
+        // Initialize UI
+        function initApp() {
+            document.getElementById('header-name').innerText = profile.name;
+            document.getElementById('setting-name').value = profile.name;
+            document.getElementById('setting-location').value = profile.location;
+            
+            // Request Notification permission
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+
+            renderMedicines();
+            renderSOSContacts();
+        }
+
+        // Render Functions
         function renderMedicines() {
             const container = document.getElementById('medicines-container');
             container.innerHTML = '';
+            let pending = 0;
             
-            if (medicines.length === 0) {
-                container.innerHTML = '<p style="font-size:11px; color:var(--text-muted); text-align:center; padding:10px;">No medications scheduled.</p>';
-                document.getElementById('pill-count-badge').innerText = "0 Scheduled";
-                return;
-            }
-
-            let pendingCount = 0;
             medicines.forEach((med, index) => {
-                if (!med.taken) pendingCount++;
-                
+                if(!med.taken) pending++;
                 const row = document.createElement('div');
                 row.className = 'pill-row';
                 row.innerHTML = `
@@ -199,31 +219,39 @@
                 `;
                 container.appendChild(row);
             });
-            
-            document.getElementById('pill-count-badge').innerText = pendingCount + " Pending";
+            document.getElementById('pill-count-badge').innerText = pending + " Pending";
             localStorage.setItem('mediguard_meds', JSON.stringify(medicines));
+        }
+
+        function renderSOSContacts() {
+            const container = document.getElementById('sos-contacts-list');
+            container.innerHTML = '';
+            sosContacts.forEach((contact, index) => {
+                const row = document.createElement('div');
+                row.className = 'contact-row';
+                row.innerHTML = `
+                    <span>📞 <b>${contact.name}</b> (${contact.phone})</span>
+                    <button class="btn-sm btn-del" onclick="deleteContact(${index})">✕</button>
+                `;
+                container.appendChild(row);
+            });
+            document.getElementById('contact-count').innerText = sosContacts.length + " Contacts";
+            localStorage.setItem('mediguard_sos', JSON.stringify(sosContacts));
+        }
+
+        // Action Handlers
+        function addMedicine() {
+            const name = document.getElementById('new-med-name').value;
+            const time = document.getElementById('new-med-time').value;
+            if(!name) return alert("Enter medicine name");
+            medicines.push({ id: Date.now(), name, time: time || "Daily", taken: false });
+            document.getElementById('new-med-name').value = '';
+            document.getElementById('new-med-time').value = '';
+            renderMedicines();
         }
 
         function toggleTaken(index) {
             medicines[index].taken = !medicines[index].taken;
-            renderMedicines();
-        }
-
-        function addMedicine() {
-            const nameInput = document.getElementById('new-med-name');
-            const timeInput = document.getElementById('new-med-time');
-            if(!nameInput.value) {
-                alert("Please enter the medicine name.");
-                return;
-            }
-            medicines.push({
-                id: Date.now(),
-                name: nameInput.value,
-                time: timeInput.value || "Daily",
-                taken: false
-            });
-            nameInput.value = '';
-            timeInput.value = '';
             renderMedicines();
         }
 
@@ -232,51 +260,121 @@
             renderMedicines();
         }
 
+        function addSOSContact() {
+            const name = document.getElementById('new-contact-name').value;
+            const phone = document.getElementById('new-contact-phone').value;
+            if(!name || !phone) return alert("Enter contact name and number");
+            sosContacts.push({ name, phone });
+            document.getElementById('new-contact-name').value = '';
+            document.getElementById('new-contact-phone').value = '';
+            renderSOSContacts();
+        }
+
+        function deleteContact(index) {
+            if(sosContacts.length <= 1) return alert("At least one SOS contact is required.");
+            sosContacts.splice(index, 1);
+            renderSOSContacts();
+        }
+
+        function saveProfile() {
+            profile.name = document.getElementById('setting-name').value;
+            profile.location = document.getElementById('setting-location').value;
+            localStorage.setItem('mediguard_profile', JSON.stringify(profile));
+            document.getElementById('header-name').innerText = profile.name;
+            toggleModal(false);
+        }
+
+        function toggleModal(show) {
+            document.getElementById('settings-modal').style.display = show ? 'block' : 'none';
+        }
+
         function triggerSOS() {
-            const phoneNumber = document.getElementById('sos-number').value || "+919847000000";
-            const confirmCall = confirm(🚨 EMERGENCY SOS TRIGGERED!\n\nThis will initiate an immediate phone call / SMS dispatch to your registered contact:\n📞 ${phoneNumber}\n\nProceed with live call?);
-            if (confirmCall) {
-                // Triggers native phone dialer on mobile/tablet devices
-                window.location.href = tel:${phoneNumber};
+            if(sosContacts.length === 0) return alert("No SOS contacts configured.");
+            const primary = sosContacts[0];
+            const confirmCall = confirm(🚨 EMERGENCY SOS DISPATCH!\n\nCalling Primary Contact:\n${primary.name}: ${primary.phone}\n\nProceed?);
+            if(confirmCall) {
+                window.location.href = tel:${primary.phone};
             }
         }
 
+        // Vitals Spike Alert Notification
         function simulateSpike() {
-            document.getElementById('hr-display').innerText = "138 BPM";
-            document.getElementById('bp-display').innerText = "155/95";
+            document.getElementById('hr-display').innerText = "142 BPM";
+            document.getElementById('bp-display').innerText = "160/100";
             const badge = document.getElementById('vitals-status');
-            badge.innerText = "WARNING";
+            badge.innerText = "CRITICAL";
             badge.className = "badge badge-red";
-            alert("⚠️ Vitals Alert: Elevated heart rate and blood pressure detected from wristband sensor. Please verify patient status or trigger SOS if distressed.");
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("🚨 MEDIGUARD CRITICAL VITALS WARNING!", {
+                    body: "Abnormal Blood Pressure (160/100) and Heart Rate detected. Please verify patient status or press SOS.",
+                    icon: "https://img.icons8.com/color/192/stethoscope.png"
+                });
+            }
+            speakText("Warning! Abnormal high blood pressure and heart rate detected. Please check on the patient immediately.");
         }
 
-        function quickQuery(text) {
-            document.getElementById('ai-query').value = text;
-            runAI();
+        // Web Bluetooth API Hook
+        async function connectBLE() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['heart_rate']
+                });
+                alert(Connected to Wristband: ${device.name});
+            } catch (error) {
+                alert("Bluetooth scanning canceled or not supported on browser.");
+            }
+        }
+
+        // Voice Assistant Engine
+        function startVoiceInput() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return alert("Voice input not supported in this browser.");
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-IN';
+            
+            const queryInput = document.getElementById('ai-query');
+            queryInput.placeholder = "Listening... Speak now...";
+
+            recognition.onresult = function(event) {
+                queryInput.value = event.results[0][0].transcript;
+                runAI();
+            };
+            recognition.start();
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-IN';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
         }
 
         function runAI() {
             const query = document.getElementById('ai-query').value.toLowerCase();
             const out = document.getElementById('ai-output');
-            
-            if(!query) {
-                out.innerText = "Please enter a health inquiry.";
-                return;
-            }
+            let response = "";
 
             if(query.includes('dizzy') || query.includes('dizziness')) {
-                out.innerText = "🤖 MEDIGUARD AI: Assist patient to sit or lie down immediately in a shaded area. Provide small sips of water. If dizziness persists beyond 5 minutes or includes chest pain, press the red SOS button.";
+                response = "Assist patient to sit or lie down immediately in a shaded area. Provide small sips of water. If persistent, press red SOS button.";
             } else if(query.includes('missed') || query.includes('pill')) {
-                out.innerText = "🤖 MEDIGUARD AI: If a dose was missed, take it as soon as you remember. However, if it is almost time for the next scheduled dose, skip the missed one. Do not double up doses.";
+                response = "Take missed dose as soon as remembered unless it's near the next dose time. Never double up doses.";
             } else if(query.includes('bp') || query.includes('blood pressure')) {
-                out.innerText = "🤖 MEDIGUARD AI: Normal resting blood pressure is around 120/80 mmHg. Readings consistently above 140/90 require consultation with your primary rural health worker.";
+                response = "Normal resting BP is around 120/80. Readings above 140/90 require contacting your primary health worker.";
             } else {
-                out.innerText = "🤖 MEDIGUARD AI: Query logged. Ensure the elder stays hydrated and calm. Contact your local Primary Health Centre (PHC) if symptoms seem abnormal.";
+                response = "Query logged. Keep the patient hydrated and calm. Contact primary health center if feeling unwell.";
             }
+
+            out.innerText = "🤖 " + response;
+            speakText(response);
         }
 
-        // Initialize medicines list on load
-        renderMedicines();
+        initApp();
     </script>
 </body>
 </html>
