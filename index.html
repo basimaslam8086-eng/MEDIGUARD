@@ -3,97 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArogyaBand Companion - Rural Health Portal</title>
+    <title>MEDIGUARD - Rural Health IoT Portal</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        .app-container { width: 100%; max-width: 480px; background: #1e293b; border-radius: 24px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        :root {
+            --bg-main: #0B1120;
+            --card-bg: #1E293B;
+            --card-border: #334155;
+            --accent-blue: #38BDF8;
+            --accent-green: #22C55E;
+            --accent-red: #EF4444;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding: 12px; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; }
         
-        /* Instagram-style Profile Header */
-        .profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155; }
-        .profile-pic { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid #38bdf8; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
-        .profile-info h2 { font-size: 18px; font-weight: 700; color: #f8fafc; }
-        .profile-info p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-        .profile-tags { display: flex; gap: 8px; margin-top: 6px; }
+        .app-container { width: 100%; max-width: 440px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 28px; padding: 20px; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
-        .card { background: #0f172a; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-        .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
-        .badge-green { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
-        .badge-blue { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
-
-        button { cursor: pointer; border: none; border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 14px; transition: 0.2s; width: 100%; margin-top: 8px; }
-        .btn-sos { background: #dc2626; color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); }
-        .btn-sos:hover { background: #b91c1c; }
-        .btn-primary { background: #0284c7; color: white; }
-        .btn-primary:hover { background: #0369a1; }
-        .btn-success { background: #16a34a; color: white; }
-
-        .vitals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-        .vital-box { background: #1e293b; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
-        .vital-value { font-size: 22px; font-weight: 700; color: #38bdf8; margin-top: 4px; }
+        /* Brand Header */
+        .brand-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--card-border); }
+        .brand-title { font-size: 22px; font-weight: 800; color: #FFF; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
+        .brand-title span { color: var(--accent-blue); }
         
-        .pill-item { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 14px; border-radius: 10px; margin-top: 8px; border: 1px solid #334155; font-size: 13px; }
-        .chip { display: inline-block; background: #1e293b; color: #38bdf8; padding: 6px 12px; border-radius: 16px; font-size: 11px; margin-right: 6px; margin-top: 8px; cursor: pointer; border: 1px solid #334155; }
-        .chip:hover { background: #334155; }
+        /* User Profile */
+        .profile-card { display: flex; align-items: center; gap: 14px; background: #0F172A; padding: 12px 16px; border-radius: 20px; border: 1px solid var(--card-border); margin-bottom: 18px; }
+        .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0284C7, #38BDF8); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); position: relative; }
+        .online-dot { width: 12px; height: 12px; background: var(--accent-green); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid #0F172A; }
+        .profile-meta h3 { font-size: 16px; font-weight: 700; }
+        .profile-meta p { font-size: 11px; color: var(--text-muted); }
+
+        /* Cards Styling */
+        .card { background: #0F172A; border-radius: 20px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--card-border); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card-title { font-size: 14px; font-weight: 700; color: #E2E8F0; display: flex; align-items: center; gap: 6px; }
+
+        /* Badges */
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+        .badge-green { background: rgba(34, 197, 94, 0.15); color: #4ADE80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge-red { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Vitals Display */
+        .vitals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .vital-box { background: #1E293B; padding: 14px; border-radius: 14px; text-align: center; border: 1px solid var(--card-border); }
+        .vital-val { font-size: 24px; font-weight: 800; color: var(--accent-blue); margin-top: 4px; }
+
+        /* Buttons */
+        .btn { width: 100%; border: none; border-radius: 14px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+        .btn:active { transform: scale(0.97); }
+        .btn-sos { background: linear-gradient(135deg, #DC2626, #EF4444); color: white; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); font-size: 14px; }
+        .btn-action { background: #334155; color: var(--text-main); }
+        .btn-action:hover { background: #475569; }
+        .btn-take { background: var(--accent-green); color: white; padding: 6px 14px; border-radius: 10px; font-size: 11px; width: auto; margin: 0; }
+
+        /* Pills List */
+        .pill-row { display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border); }
+        .pill-info { display: flex; flex-direction: column; gap: 2px; }
+        .pill-name { font-size: 13px; font-weight: 700; }
+        .pill-time { font-size: 11px; color: var(--text-muted); }
+
+        /* Assistant Inputs */
+        .chip-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+        .chip { background: #1E293B; color: var(--accent-blue); padding: 6px 12px; border-radius: 20px; font-size: 11px; border: 1px solid var(--card-border); cursor: pointer; }
+        .chip:hover { background: var(--card-border); }
+        .chat-input { width: 100%; padding: 12px; background: #1E293B; border: 1px solid var(--card-border); border-radius: 12px; color: white; font-size: 12px; margin-top: 8px; outline: none; }
+        .chat-input:focus { border-color: var(--accent-blue); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Instagram-Inspired Profile Header -->
-        <div class="profile-header">
-            <div class="profile-pic">🩺</div>
-            <div class="profile-info">
-                <h2>ArogyaBand Patient</h2>
-                <p>Rural Health Center Zone • Kerala</p>
-                <div class="profile-tags">
-                    <span class="badge badge-green">🟢 Band Connected</span>
-                    <span class="badge badge-blue">📍 GPS Active</span>
-                </div>
+        <!-- Brand Header -->
+        <div class="brand-bar">
+            <div class="brand-title">🛡️ MEDI<span>GUARD</span></div>
+            <span class="badge badge-green">v2.4 Active</span>
+        </div>
+
+        <!-- User Profile Card -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                🩺
+                <div class="online-dot"></div>
+            </div>
+            <div class="profile-meta">
+                <h3>Rural Patient Portal</h3>
+                <p>📍 Kodungallur Sector • Wristband ID #8086</p>
             </div>
         </div>
 
-        <!-- Live Vitals Card -->
+        <!-- Live Vitals Monitoring -->
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>Live Health Vitals (Optical PPG)</strong>
-                <span class="badge badge-green" id="vitals-status">Normal</span>
+            <div class="card-header">
+                <div class="card-title">❤️ Continuous Vitals (PPG)</div>
+                <span class="badge badge-green" id="vitals-status">Optimal</span>
             </div>
             <div class="vitals-grid">
                 <div class="vital-box">
-                    <span style="font-size: 12px; color: #94a3b8;">Heart Rate</span>
-                    <div class="vital-value" id="hr-val">76 BPM</div>
+                    <span style="font-size: 11px; color: var(--text-muted);">Pulse Rate</span>
+                    <div class="vital-val" id="hr-display">74 <span style="font-size:12px;">BPM</span></div>
                 </div>
                 <div class="vital-box">
-                    <span style="font-size: 12px; color: #94a3b8;">Est. Blood Pressure</span>
-                    <div class="vital-value" id="bp-val">118/79</div>
+                    <span style="font-size: 11px; color: var(--text-muted);">Est. Blood Pressure</span>
+                    <div class="vital-val" id="bp-display">118/78</div>
                 </div>
             </div>
-            <button class="btn-primary" style="background: #334155; font-size: 12px; padding: 8px;" onclick="simulateSpike()">⚠️ Test High BPM/BP Alert Simulation</button>
+            <button class="btn btn-action" onclick="simulateSpike()">⚠️ Simulate Sudden ECG/BP Alert Spike</button>
         </div>
 
-        <!-- Medicine Schedule Reminder Card -->
+        <!-- Daily Pill Schedule -->
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="color: #38bdf8;">Daily Pill Schedule</strong>
-                <span class="badge badge-blue" id="pill-status">2 Pending</span>
+            <div class="card-header">
+                <div class="card-title">💊 Medicine Schedule</div>
+                <span class="badge badge-blue" id="pill-count-badge">2 Scheduled</span>
             </div>
-            <div class="pill-item">
-                <div>
-                    <strong>Metformin (500mg)</strong><br>
-                    <span style="font-size: 11px; color: #94a3b8;">Morning Dose • 8:00 AM</span>
+            
+            <div class="pill-row" id="pill1">
+                <div class="pill-info">
+                    <span class="pill-name">Metformin (500mg)</span>
+                    <span class="pill-time">⏰ Morning • 8:00 AM</span>
                 </div>
-                <button style="width: auto; padding: 6px 14px; font-size: 12px; margin: 0;" class="btn-success" onclick="takePill(this)">Take</button>
+                <button class="btn btn-take" onclick="markTaken('pill1')">Mark Taken</button>
             </div>
-            <div class="pill-item">
-                <div>
-                    <strong>Aspirin (75mg)</strong><br>
-                    <span style="font-size: 11px; color: #94a3b8;">Afternoon Dose • 1:00 PM</span>
+
+            <div class="pill-row" id="pill2">
+                <div class="pill-info">
+                    <span class="pill-name">Aspirin (75mg)</span>
+                    <span class="pill-time">⏰ Afternoon • 1:30 PM</span>
                 </div>
-                <button style="width: auto; padding: 6px 14px; font-size: 12px; margin: 0;" class="btn-success" onclick="takePill(this)">Take</button>
+                <button class="btn btn-take" onclick="markTaken('pill2')">Mark Taken</button>
             </div>
         </div>
 
-        <!-- Emergency SOS Card -->
-        <div class="card"
+        <!-- One-Tap Emergency SOS -->
+        <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
+            <div class="card-header">
+                <div class="card-title" style="color: #F87171;">🚨 One-Tap Emergency SOS</div>
+                <span class="badge badge-red">GSM Cellular Ready</span>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted);">Triggers immediate distress signal with GPS coordinates to closest primary health center & family contacts even without 4G internet.</p>
+            <button class="btn btn-sos" onclick="triggerSOS()">DISPATCH SOS EMERGENCY</button>
+        </div>
+
+        <!-- AI Voice & Assistant -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🤖 MEDIGUARD AI Assistant</div>
+                <span class="badge badge-blue">Local Guidance</span>
+            </div>
+            <div class="chip-group">
+                <span class="chip" onclick="quickQuery('What to do for dizziness?')">💫 Dizziness</span>
+                <span class="chip" onclick="quickQuery('Check next medicine time')">⏰ Next Pill</span>
+                <span class="chip" onclick="quickQuery('What is normal BP range?')">📊 BP Range</span>
+            </div>
+            <input type="text" id="ai-query" class="chat-input" placeholder="Type or tap symptom query above...">
+            <button class="btn btn-action" style="background: var(--accent-blue); color: #000;" onclick="runAI()">Ask Medical AI</button>
+            <div id="ai-output" style="font-size: 12px; color: var(--accent-blue); margin-top: 10px; line-height: 1.4; font-weight: 600;"></div>
+        </div>
+    </div>
+
+    <script>
+        let remainingPills = 2;
+
+        function markTaken(id) {
+            const row = document.getElementById(id);
+            const btn = row.querySelector('.btn-take');
+            btn.innerText = "✓ Done";
+            btn.style.background = "#334155";
+            btn.disabled = true;
+            remainingPills--;
+            
+            const badge = document.getElementById('pill-count-badge');
+            if (remainingPills > 0) {
+                badge.innerText = remainingPills + " Scheduled";
+            } else {
+                badge.innerText = "All Completed!";
+                badge.className = "badge badge-green";
+            }
+            alert("✅ Pill confirmed taken! Haptic vibration alert synced to MEDIGUARD wristband.");
+        }
+
+        function triggerSOS() {
+            alert("🚨 MEDIGUARD EMERGENCY SOS ACTIVATED!\n\n📍 Current GPS Coordinates: Lat 10.22° N, Long 76.20° E\n\n📲 Offline GSM SMS dispatched to Nearest Medical Center & Registered Emergency Contacts!");
+        }
+
+        function simulateSpike() {
+            document.getElementById('hr-display').innerText = "136 BPM";
+            document.getElementById('bp-display').innerText = "150/98";
+            const badge = document.getElementById('vitals-status');
+            badge.innerText = "HIGH RISK";
+            badge.className = "badge badge-red";
+            alert("⚠️ WARNING: Heart rate spike (136 BPM) and High BP detected by MEDIGUARD wristband! Pre-alert notification queued.");
+        }
+
+        function quickQuery(text) {
+            document.getElementById('ai-query').value = text;
+            runAI();
+        }
+
+        function runAI() {
+            const query = document.getElementById('ai-query').value.toLowerCase();
+            const out = document.getElementById('ai-output');
+            
+            if(!query) {
+                out.innerText = "Please select or enter a health question.";
+                return;
+            }
+
+            if(query.includes('dizziness')) {
+                out.innerText = "🤖 MEDIGUARD AI: Sit down safely, stay hydrated, and rest. If accompanied by chest tightness, tap the SOS trigger.";
+            } else if(query.includes('next pill')) {
+                out.innerText = "🤖 MEDIGUARD AI: Your next scheduled medicine is Metformin (500mg) at 8:00 AM.";
+            } else if(query.includes('bp range')) {
+                out.innerText = "🤖 MEDIGUARD AI: Normal BP is around 120/80 mmHg. Above 140/90 is considered high.";
+            } else {
+                out.innerText = "🤖 MEDIGUARD AI: Query recorded. Please ensure regular hydration and consult your nearest primary healthcare worker if symptoms persist.";
+            }
+        }
+    </script>
+</body>
+</html>
