@@ -281,7 +281,6 @@
             { name: "ASHA Health Worker", phone: "+919847111111" }
         ];
 
-        // Guaranteed Touch Binder (Hardware-Tested)
         function bindTouch(elementId, actionFn) {
             const el = document.getElementById(elementId);
             if(!el) return;
@@ -515,15 +514,14 @@
                 } catch(e) {}
             }
 
-            // Fallback Offline Medical Engine
             const q = query.toLowerCase();
             let res = "";
 
             if (currentLang === 'hi-IN') {
                 if (q.includes('बुखार') || q.includes('fever')) res = "बुखार होने पर मरीज को आराम दें, माथे पर ठंडी पट्टी रखें और पैरासिटामोल दें। तापमान बढ़ने पर डॉक्टर से मिलें।";
                 else if (q.includes('चक्कर') || q.includes('dizzy')) res = "मरीज को तुरंत छांव में बिठाएं और पानी दें। चक्कर बने रहने पर एसओएस बटन दबाएं।";
-                else if (q.includes('দவா') || q.includes('pill')) res = "छूटी हुई दवा याद आते ही लें। यदि अगली खुराक का समय करीब है तो दोहरी खुराक न लें।";
-                else res = "सलाह दर्ज की गई। मरीज को आराम कराएं और आवश्यकता होने पर नजदीकी प्राथमिक स्वास्थ्य केंद्र से संपर्क करें።";
+                else if (q.includes('दवा') || q.includes('pill')) res = "छूटी हुई दवा याद आते ही लें। यदि अगली खुराक का समय करीब है तो दोहरी खुराक न लें।";
+                else res = "सलाह दर्ज की गई। मरीज को आराम कराएं और आवश्यकता होने पर नजदीकी प्राथमिक स्वास्थ्य केंद्र से संपर्क करें।";
             } else if (currentLang === 'ml-IN') {
                 if (q.includes('പനി') || q.includes('fever')) res = "പനിയുള്ളപ്പോൾ രോഗിക്ക് വിശ്രമം നൽകുക, നെറ്റിയിൽ തണുത്ത വെള്ളം നനച്ച് വയ്ക്കുക. പനി കൂടിയാൽ ഡോക്ടറെ കാണുക.";
                 else if (q.includes('തലചുറ്റൽ') || q.includes('dizzy')) res = "രോഗിയെ തണലിൽ ഇരുത്തി വെള്ളം നൽകുക. തലചുറ്റൽ തുടർന്നാൽ SOS അമർത്തുക.";
