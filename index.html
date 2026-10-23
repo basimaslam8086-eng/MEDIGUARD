@@ -1,0 +1,788 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArogyaBand Companion - Rural Health System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Vitals Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        /* Pulse Animation for Emergency SOS */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .sos-pulse {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-2 md:p-6 flex flex-col justify-between">
+
+    <!-- Top Banner & Simulation Controls -->
+    <header class="max-w-6xl mx-auto w-full mb-6 bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-4 shadow-xl flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-teal-500/20 border border-teal-500/40 rounded-xl flex items-center justify-center text-teal-400 font-bold text-xl">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-white leading-tight">ArogyaBand Companion</h1>
+                <p class="text-xs text-slate-400">Rural Health IoT & Community Safety Portal</p>
+            </div>
+        </div>
+
+        <!-- Simulation Controls for Prototype Testing -->
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+            <span class="text-slate-400 font-medium">Demo Simulator:</span>
+            <button onclick="toggleHighVitals()" id="simVitalsBtn" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg hover:bg-amber-500/30 transition flex items-center gap-1.5 font-medium">
+                <i class="fa-solid fa-triangle-exclamation"></i> Simulate High BPM/BP
+            </button>
+            <button onclick="triggerEmergencySOS()" class="bg-red-500/20 text-red-300 border border-red-500/30 px-3 py-1.5 rounded-lg hover:bg-red-500/30 transition flex items-center gap-1.5 font-medium">
+                <i class="fa-solid fa-bell"></i> Trigger Emergency
+            </button>
+            <div class="border-l border-slate-700 h-6 mx-1 hidden sm:block"></div>
+            <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-teal-500">
+                <option value="en">English</option>
+                <option value="ml">Malayalam (മലയാളം)</option>
+                <option value="hi">Hindi (हिंदी)</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Main Container: Smartphone Shell + Dashboard Info -->
+    <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start my-auto">
+        
+        <!-- Left Side: Interactive Mobile App Frame -->
+        <div class="lg:col-span-5 flex justify-center">
+            <div class="w-full max-w-[380px] bg-slate-900 border-[6px] border-slate-700 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[740px] relative">
+                
+                <!-- Phone Top Bar Notch / Battery -->
+                <div class="bg-slate-900 px-6 py-3 flex justify-between items-center text-xs text-slate-400 border-b border-slate-800">
+                    <span id="currentTime">09:41 AM</span>
+                    <div class="flex items-center gap-1.5 text-[10px]">
+                        <span class="bg-teal-500/20 text-teal-400 px-1.5 py-0.5 rounded font-mono">BLE Active</span>
+                        <i class="fa-solid fa-wifi"></i>
+                        <i class="fa-solid fa-battery-three-quarters"></i>
+                    </div>
+                </div>
+
+                <!-- Emergency Banner (Hidden by default) -->
+                <div id="alertBanner" class="hidden bg-red-600 text-white px-4 py-2 text-xs flex justify-between items-center animate-bounce">
+                    <span class="flex items-center gap-1.5 font-bold">
+                        <i class="fa-solid fa-circle-exclamation"></i> CRITICAL VITALS DETECTED!
+                    </span>
+                    <button onclick="dismissAlert()" class="text-white hover:text-slate-200 font-bold">✕</button>
+                </div>
+
+                <!-- Dynamic Content Area -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="appContent">
+                    <!-- Dynamic screen inserted by JavaScript -->
+                </div>
+
+                <!-- Mobile Bottom Navigation Bar -->
+                <nav class="bg-slate-950 border-t border-slate-800 px-3 py-2.5 grid grid-cols-4 gap-1 text-center text-xs">
+                    <button onclick="switchTab('vitals')" id="nav-vitals" class="flex flex-col items-center py-1 rounded-xl text-teal-400 font-medium transition">
+                        <i class="fa-solid fa-heart-pulse text-base mb-1"></i>
+                        <span data-i18n="nav_vitals">Vitals</span>
+                    </button>
+                    <button onclick="switchTab('sos')" id="nav-sos" class="flex flex-col items-center py-1 rounded-xl text-slate-400 font-medium transition">
+                        <i class="fa-solid fa-truck-medical text-base mb-1"></i>
+                        <span data-i18n="nav_sos">SOS</span>
+                    </button>
+                    <button onclick="switchTab('pills')" id="nav-pills" class="flex flex-col items-center py-1 rounded-xl text-slate-400 font-medium transition">
+                        <i class="fa-solid fa-pills text-base mb-1"></i>
+                        <span data-i18n="nav_pills">Pills</span>
+                    </button>
+                    <button onclick="switchTab('ai')" id="nav-ai" class="flex flex-col items-center py-1 rounded-xl text-slate-400 font-medium transition">
+                        <i class="fa-solid fa-robot text-base mb-1"></i>
+                        <span data-i18n="nav_ai">ArogyaAI</span>
+                    </button>
+                </nav>
+
+            </div>
+        </div>
+
+        <!-- Right Side: Live System Monitor / Hardware Technical Overview -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Real-Time Hardware & Network Monitor -->
+            <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 shadow-lg">
+                <h2 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-teal-400"></i> ArogyaBand Hardware & Gateway Sync
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs mb-1">Wristband Link</div>
+                        <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Connected (BLE)
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">PPG Optical Sensor OK</div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs mb-1">Emergency GPS</div>
+                        <div class="text-sky-400 font-bold text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-location-dot"></i> Lat: 10.22° N, Long: 76.20° E
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">Precision: ± 3 Meters</div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-xs mb-1">Cellular Fallback</div>
+                        <div class="text-amber-400 font-bold text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-signal"></i> GSM/SMS Ready
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-1">Works without 4G/Internet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulated Emergency Dispatch & SMS Log -->
+            <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 shadow-lg">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-red-400"></i> Emergency Dispatch Console & SMS Relay Log
+                    </h2>
+                    <span id="dispatchStatus" class="bg-slate-700 text-slate-300 text-[11px] px-2.5 py-1 rounded-full">System Idle</span>
+                </div>
+
+                <div id="smsConsole" class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 h-40 overflow-y-auto space-y-2">
+                    <p class="text-slate-500">// System initialized. Awaiting user interaction or critical vitals trigger...</p>
+                </div>
+            </div>
+
+            <!-- Rural Deployment Highlights for Science Project -->
+            <div class="bg-gradient-to-r from-teal-900/30 to-slate-800 border border-teal-500/20 rounded-2xl p-5">
+                <h3 class="text-sm font-semibold text-teal-300 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i> Project Exhibition Key Highlights
+                </h3>
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-300">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-teal-400 mt-0.5"></i>
+                        <span><strong>Dual Network Gateway:</strong> Automatically routes alert via internet or offline SMS depending on signal.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-teal-400 mt-0.5"></i>
+                        <span><strong>Multi-Language AI:</strong> Voice assistant built for non-literate elderly patients in rural sectors.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-teal-400 mt-0.5"></i>
+                        <span><strong>Community Integration:</strong> Instantly alerts Primary Health Centers (PHC) & Accredited Social Health Activists (ASHA).</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-check text-teal-400 mt-0.5"></i>
+                        <span><strong>Affordable Hardware:</strong> Wristband runs on ultra-low-power ESP32 MCU with high-efficiency PPG sensors.</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Global Toast Notification Container -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-teal-600 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-medium translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 z-50">
+        <i class="fa-solid fa-bell"></i> <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // State Management
+        let currentTab = 'vitals';
+        let currentLang = 'en';
+        let highVitalsSimulated = false;
+        let bpmChart = null;
+
+        // Dynamic Vitals Data
+        let vitalsHistory = [72, 74, 71, 75, 73, 76, 74];
+        let currentBPM = 74;
+        let currentSystolic = 120;
+        let currentDiastolic = 80;
+
+        // Language Translations
+        const translations = {
+            en: {
+                nav_vitals: "Vitals",
+                nav_sos: "SOS",
+                nav_pills: "Pills",
+                nav_ai: "ArogyaAI",
+                vitals_title: "Live Health Vitals",
+                sos_title: "One-Tap Emergency SOS",
+                pills_title: "Daily Medicine Tracker",
+                ai_title: "Arogya AI Health Voice Assistant",
+                sos_btn: "TAP FOR EMERGENCY",
+                sos_sub: "Pressing sends instant GPS alert to PHC Clinic & Family Contacts"
+            },
+            ml: {
+                nav_vitals: "ആരോഗ്യം",
+                nav_sos: "അടിയന്തരം",
+                nav_pills: "മരുന്നുകൾ",
+                nav_ai: "സഹായി",
+                vitals_title: "തത്സമയ ആരോഗ്യ വിവരങ്ങൾ",
+                sos_title: "അടിയന്തര ആപത് സേവനം (SOS)",
+                pills_title: "ദിനചര്യ മരുന്ന് പട്ടിക",
+                ai_title: "ആരോഗ്യ ശബ്ദ സഹായി",
+                sos_btn: "അടിയന്തര സഹായം",
+                sos_sub: "ഇതിൽ അമർത്തിയാൽ കുടുംബത്തിനും പ്രാഥമിക ആരോഗ്യ കേന്ദ്രത്തിനും സന്ദേശം അയക്കും"
+            },
+            hi: {
+                nav_vitals: "स्वास्थ्य",
+                nav_sos: "आपातकालीन",
+                nav_pills: "दवाइयां",
+                nav_ai: "सहायक",
+                vitals_title: "लाइव स्वास्थ्य डेटा",
+                sos_title: "वन-टैप आपातकालीन SOS",
+                pills_title: "दैनिक दवा शेड्यूल",
+                ai_title: "आरोग्य एआई वॉयस असिस्टेंट",
+                sos_btn: "आपातकालीन सहायता",
+                sos_sub: "दबाने पर निकटतम स्वास्थ्य केंद्र और परिवार को तुरंत जीपीएस अलर्ट भेजा जाएगा"
+            }
+        };
+
+        // Sample Pills List
+        let medicineSchedule = [
+            { id: 1, name: "Metformin (Diabetes)", time: "08:00 AM", taken: true },
+            { id: 2, name: "Amlodipine (BP Pill)", time: "02:00 PM", taken: false },
+            { id: 3, name: "Multivitamin", time: "08:00 PM", taken: false }
+        ];
+
+        // Initialize Application
+        window.onload = function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            switchTab('vitals');
+            startVitalsSimulation();
+        };
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Tab Switching Logic
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update Navigation Styles
+            ['vitals', 'sos', 'pills', 'ai'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (t === tab) {
+                    btn.className = "flex flex-col items-center py-1 rounded-xl text-teal-400 font-medium transition";
+                } else {
+                    btn.className = "flex flex-col items-center py-1 rounded-xl text-slate-400 font-medium transition";
+                }
+            });
+
+            // Render Content
+            const container = document.getElementById('appContent');
+            
+            if (tab === 'vitals') {
+                renderVitalsTab(container);
+            } else if (tab === 'sos') {
+                renderSOSTab(container);
+            } else if (tab === 'pills') {
+                renderPillsTab(container);
+            } else if (tab === 'ai') {
+                renderAITab(container);
+            }
+        }
+
+        // 1. VITALS TAB RENDERER
+        function renderVitalsTab(container) {
+            const t = translations[currentLang];
+            const isHigh = highVitalsSimulated;
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-semibold text-slate-200">${t.vitals_title}</h2>
+                        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700">Live Pulse Sensor</span>
+                    </div>
+
+                    <!-- Heart Rate Card -->
+                    <div class="${isHigh ? 'bg-red-950/40 border-red-500/50' : 'bg-slate-800/80 border-slate-700'} border rounded-2xl p-4 transition-all">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="text-xs text-slate-400 font-medium">Heart Rate (PPG)</span>
+                                <div class="text-3xl font-bold ${isHigh ? 'text-red-400' : 'text-teal-400'} mt-0.5">
+                                    <span id="bpmDisplay">${currentBPM}</span> <span class="text-xs text-slate-400 font-normal">BPM</span>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full ${isHigh ? 'bg-red-500/20 text-red-400' : 'bg-teal-500/20 text-teal-400'} flex items-center justify-center animate-pulse">
+                                <i class="fa-solid fa-heart text-sm"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="h-28 w-full mt-2">
+                            <canvas id="bpmChartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Blood Pressure Card -->
+                    <div class="${isHigh ? 'bg-amber-950/40 border-amber-500/50' : 'bg-slate-800/80 border-slate-700'} border rounded-2xl p-4 transition-all">
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <span class="text-xs text-slate-400 font-medium">Blood Pressure (Estimated PTT)</span>
+                                <div class="text-2xl font-bold ${isHigh ? 'text-amber-400' : 'text-slate-100'} mt-0.5">
+                                    <span id="bpDisplay">${currentSystolic}/${currentDiastolic}</span> <span class="text-xs text-slate-400 font-normal">mmHg</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] ${isHigh ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} px-2 py-1 rounded-md border font-medium">
+                                ${isHigh ? 'Hypertension Alert' : 'Normal Range'}
+                            </span>
+                        </div>
+
+                        <!-- Range Bar -->
+                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden flex">
+                            <div class="bg-sky-400 h-full w-1/3"></div>
+                            <div class="bg-emerald-400 h-full w-1/3"></div>
+                            <div class="bg-red-400 h-full w-1/3"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                            <span>Low (&lt;90)</span>
+                            <span>Normal (120/80)</span>
+                            <span>High (&gt;140)</span>
+                        </div>
+                    </div>
+
+                    <!-- Battery & Sensor Status -->
+                    <div class="bg-slate-800/40 border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs text-slate-400">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> Wristband Battery: 88%
+                        </span>
+                        <span class="text-slate-500">7 Days Remaining</span>
+                    </div>
+                </div>
+            `;
+
+            // Render Chart
+            setTimeout(initBpmChart, 50);
+        }
+
+        function initBpmChart() {
+            const ctx = document.getElementById('bpmChartCanvas');
+            if(!ctx) return;
+
+            if(bpmChart) bpmChart.destroy();
+
+            bpmChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1m ago', '50s', '40s', '30s', '20s', '10s', 'Now'],
+                    datasets: [{
+                        label: 'BPM',
+                        data: vitalsHistory,
+                        borderColor: highVitalsSimulated ? '#f87171' : '#2dd4bf',
+                        backgroundColor: highVitalsSimulated ? 'rgba(248, 113, 113, 0.1)' : 'rgba(45, 212, 191, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            min: 50, 
+                            max: 140,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#64748b', font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Live Vitals Loop Simulation
+        function startVitalsSimulation() {
+            setInterval(() => {
+                if(!highVitalsSimulated) {
+                    // Normal subtle fluctuation
+                    currentBPM = Math.floor(70 + Math.random() * 8);
+                    currentSystolic = Math.floor(118 + Math.random() * 5);
+                    currentDiastolic = Math.floor(78 + Math.random() * 4);
+                } else {
+                    // Elevated vital stats
+                    currentBPM = Math.floor(115 + Math.random() * 12);
+                    currentSystolic = Math.floor(148 + Math.random() * 8);
+                    currentDiastolic = Math.floor(95 + Math.random() * 5);
+                }
+
+                // Update array
+                vitalsHistory.shift();
+                vitalsHistory.push(currentBPM);
+
+                // Update UI if on vitals tab
+                if(currentTab === 'vitals') {
+                    const bpmEl = document.getElementById('bpmDisplay');
+                    const bpEl = document.getElementById('bpDisplay');
+                    if(bpmEl) bpmEl.innerText = currentBPM;
+                    if(bpEl) bpEl.innerText = `${currentSystolic}/${currentDiastolic}`;
+                    if(bpmChart) {
+                        bpmChart.data.datasets[0].data = vitalsHistory;
+                        bpmChart.update('none');
+                    }
+                }
+            }, 3000);
+        }
+
+        // 2. SOS EMERGENCY TAB RENDERER
+        function renderSOSTab(container) {
+            const t = translations[currentLang];
+
+            container.innerHTML = `
+                <div class="space-y-4 text-center">
+                    <h2 class="text-sm font-semibold text-slate-200 text-left">${t.sos_title}</h2>
+
+                    <div class="py-6 flex flex-col items-center justify-center">
+                        <!-- Big Interactive Red SOS Button -->
+                        <div class="relative flex items-center justify-center">
+                            <div class="absolute w-44 h-44 rounded-full bg-red-600/20 sos-pulse"></div>
+                            <button onclick="triggerEmergencySOS()" class="relative w-36 h-36 bg-gradient-to-tr from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 active:scale-95 text-white rounded-full shadow-2xl shadow-red-600/50 border-4 border-red-400/40 flex flex-col items-center justify-center transition cursor-pointer">
+                                <i class="fa-solid fa-triangle-exclamation text-3xl mb-1"></i>
+                                <span class="font-black text-xl tracking-wider">SOS</span>
+                            </button>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 max-w-xs mt-6 leading-relaxed">${t.sos_sub}</p>
+                    </div>
+
+                    <!-- Configured Emergency Contacts Card -->
+                    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-3.5 text-left space-y-2.5">
+                        <div class="text-xs font-semibold text-slate-300 flex justify-between items-center">
+                            <span>Assigned Emergency Dispatch</span>
+                            <span class="text-[10px] text-teal-400">3 Contacts Linked</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center bg-slate-900/80 p-2 rounded-xl text-xs">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-red-500/20 text-red-400 rounded-lg flex items-center justify-center">
+                                        <i class="fa-solid fa-hospital text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-slate-200 font-medium">Rural PHC Clinic (3.2 km)</div>
+                                        <div class="text-[10px] text-slate-500">+91 94000 12345</div>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Primary</span>
+                            </div>
+
+                            <div class="flex justify-between items-center bg-slate-900/80 p-2 rounded-xl text-xs">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-sky-500/20 text-sky-400 rounded-lg flex items-center justify-center">
+                                        <i class="fa-solid fa-user-shield text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-slate-200 font-medium">ASHA Worker (Sunitha M.)</div>
+                                        <div class="text-[10px] text-slate-500">+91 98470 98765</div>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Local</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. PILL SCHEDULE TAB RENDERER
+        function renderPillsTab(container) {
+            const t = translations[currentLang];
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-semibold text-slate-200">${t.pills_title}</h2>
+                        <button onclick="addNewPillPrompt()" class="text-xs bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add
+                        </button>
+                    </div>
+
+                    <!-- Pills List -->
+                    <div class="space-y-2.5" id="pillsListContainer">
+                        ${medicineSchedule.map(med => `
+                            <div class="bg-slate-800/80 border ${med.taken ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-slate-700'} rounded-2xl p-3 flex justify-between items-center transition">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" ${med.taken ? 'checked' : ''} onchange="togglePill(${med.id})" class="w-4 h-4 rounded text-teal-500 focus:ring-teal-500 bg-slate-900 border-slate-600">
+                                    <div>
+                                        <div class="text-xs font-semibold ${med.taken ? 'text-slate-400 line-through' : 'text-slate-100'}">${med.name}</div>
+                                        <div class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                                            <i class="fa-regular fa-clock"></i> ${med.time}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] ${med.taken ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'} px-2 py-0.5 rounded-full font-medium">
+                                    ${med.taken ? 'Taken' : 'Pending'}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Audio Pill Reminder Banner -->
+                    <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-volume-high text-xs"></i>
+                        </div>
+                        <div class="text-xs">
+                            <div class="text-slate-200 font-medium">Wristband Haptic & Audio Alert</div>
+                            <p class="text-[10px] text-slate-400">Vibrates 3x on wristband when medicine is due.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 4. AI VOICE ASSISTANT TAB RENDERER
+        function renderAITab(container) {
+            const t = translations[currentLang];
+
+            container.innerHTML = `
+                <div class="space-y-4 flex flex-col h-full">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-semibold text-slate-200">${t.ai_title}</h2>
+                        <span class="text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-500/30">Offline Local Model</span>
+                    </div>
+
+                    <!-- Chat Message Area -->
+                    <div id="aiChatArea" class="bg-slate-950 border border-slate-800 rounded-2xl p-3 flex-1 overflow-y-auto space-y-3 min-h-[280px]">
+                        <div class="flex items-start gap-2 max-w-[85%]">
+                            <div class="w-6 h-6 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs shrink-0 mt-1">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div class="bg-slate-800 text-slate-200 p-2.5 rounded-2xl rounded-tl-none text-xs leading-relaxed">
+                                Namaste! I am your Arogya AI companion. You can speak or select a query below in your language.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pre-built Quick Voice Queries (Rural Health Centric) -->
+                    <div class="space-y-1.5">
+                        <span class="text-[10px] text-slate-400 font-medium">Quick Audio Questions:</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="askAI('What to do for sudden chest pain?')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition">
+                                💊 Chest pain steps?
+                            </button>
+                            <button onclick="askAI('When to take BP medicine?')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition">
+                                ⏰ BP medicine time?
+                            </button>
+                            <button onclick="askAI('Remind me about fever care')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-full transition">
+                                🤒 High fever remedy
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Text / Voice Input Bar -->
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="aiInput" placeholder="Type or click voice button..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-teal-500">
+                        <button onclick="triggerVoiceInput()" title="Voice Input" class="w-9 h-9 bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 border border-teal-500/30 rounded-xl flex items-center justify-center transition">
+                            <i class="fa-solid fa-microphone text-xs"></i>
+                        </button>
+                        <button onclick="sendAIMessage()" class="w-9 h-9 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl flex items-center justify-center transition">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Interactive Handlers
+        function togglePill(id) {
+            const med = medicineSchedule.find(m => m.id === id);
+            if(med) {
+                med.taken = !med.taken;
+                showToast(med.taken ? `Marked "${med.name}" as taken.` : `Unmarked "${med.name}".`);
+                if(currentTab === 'pills') switchTab('pills');
+            }
+        }
+
+        function addNewPillPrompt() {
+            const name = prompt("Enter Medicine Name:", "Paracetamol 500mg");
+            if(name) {
+                const time = prompt("Enter Schedule Time:", "09:00 PM") || "09:00 PM";
+                medicineSchedule.push({ id: Date.now(), name: name, time: time, taken: false });
+                showToast("New pill reminder added!");
+                if(currentTab === 'pills') switchTab('pills');
+            }
+        }
+
+        function triggerEmergencySOS() {
+            // Show alert banner
+            document.getElementById('alertBanner').classList.remove('hidden');
+
+            // Log to emergency SMS console
+            const smsConsole = document.getElementById('smsConsole');
+            const statusEl = document.getElementById('dispatchStatus');
+            const now = new Date().toLocaleTimeString();
+
+            statusEl.innerText = "CRITICAL DISPATCH ACTIVE";
+            statusEl.className = "bg-red-500/20 text-red-300 text-[11px] px-2.5 py-1 rounded-full border border-red-500/30 animate-pulse";
+
+            const logEntry = `
+                <div class="p-2 bg-red-950/40 border-l-2 border-red-500 text-red-300 rounded text-[11px] space-y-1">
+                    <div class="font-bold flex justify-between">
+                        <span>🚨 EMERGENCY SOS DISPATCHED</span>
+                        <span>${now}</span>
+                    </div>
+                    <div><strong>GPS:</strong> 10.2241° N, 76.2011° E (Rural Sector 4)</div>
+                    <div><strong>BPM:</strong> ${currentBPM} BPM | <strong>BP:</strong> ${currentSystolic}/${currentDiastolic} mmHg</div>
+                    <div class="text-slate-400 text-[10px]"><strong>SMS Fallback Relay:</strong> "ALERT! Patient ArogyaBand #1042 triggered SOS. Immediate ambulance required. Coordinates: https://maps.google.com/?q=10.2241,76.2011"</div>
+                </div>
+            `;
+            
+            smsConsole.innerHTML = logEntry + smsConsole.innerHTML;
+            showToast("🚨 Emergency SOS & Offline SMS Dispatched!");
+        }
+
+        function dismissAlert() {
+            document.getElementById('alertBanner').classList.add('hidden');
+            const statusEl = document.getElementById('dispatchStatus');
+            statusEl.innerText = "System Idle";
+            statusEl.className = "bg-slate-700 text-slate-300 text-[11px] px-2.5 py-1 rounded-full";
+        }
+
+        function toggleHighVitals() {
+            highVitalsSimulated = !highVitalsSimulated;
+            const btn = document.getElementById('simVitalsBtn');
+            
+            if(highVitalsSimulated) {
+                btn.className = "bg-red-500 text-white border border-red-400 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 shadow-lg shadow-red-500/30";
+                btn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> High Vitals Active!`;
+                triggerEmergencySOS();
+            } else {
+                btn.className = "bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg hover:bg-amber-500/30 transition flex items-center gap-1.5 font-medium";
+                btn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Simulate High BPM/BP`;
+                dismissAlert();
+            }
+
+            if(currentTab === 'vitals') switchTab('vitals');
+        }
+
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            
+            // Translate explicit static text attributes
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(translations[currentLang][key]) {
+                    el.innerText = translations[currentLang][key];
+                }
+            });
+
+            // Re-render current tab to reflect full language changes
+            switchTab(currentTab);
+            showToast(`Language switched to ${currentLang.toUpperCase()}`);
+        }
+
+        // AI Assistant Functions
+        function askAI(queryText) {
+            const chatArea = document.getElementById('aiChatArea');
+            if(!chatArea) return;
+
+            // User Message
+            const userHtml = `
+                <div class="flex items-start justify-end gap-2">
+                    <div class="bg-teal-600 text-white p-2.5 rounded-2xl rounded-tr-none text-xs leading-relaxed max-w-[85%]">
+                        ${queryText}
+                    </div>
+                </div>
+            `;
+            chatArea.innerHTML += userHtml;
+
+            // Generate AI Response based on context
+            let replyText = "Stay calm. Keep the person rested in a cool place, give them water, and if discomfort persists, press the red SOS button to inform your local ASHA worker.";
+            if(queryText.toLowerCase().includes('bp')) {
+                replyText = "Take your BP medication daily at the exact scheduled time with warm water. Avoid heavy salt intake.";
+            } else if(queryText.toLowerCase().includes('fever')) {
+                replyText = "Drink plenty of clean fluids, rest, and take Paracetamol if recommended by your PHC health worker.";
+            }
+
+            // Simulated delayed response
+            setTimeout(() => {
+                const aiHtml = `
+                    <div class="flex items-start gap-2 max-w-[85%]">
+                        <div class="w-6 h-6 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs shrink-0 mt-1">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="bg-slate-800 text-slate-200 p-2.5 rounded-2xl rounded-tl-none text-xs leading-relaxed flex flex-col gap-1.5">
+                            <span>${replyText}</span>
+                            <button onclick="speakText('${replyText}')" class="text-[10px] text-teal-300 flex items-center gap-1 self-start bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                                <i class="fa-solid fa-volume-high"></i> Listen Audio
+                            </button>
+                        </div>
+                    </div>
+                `;
+                chatArea.innerHTML += aiHtml;
+                chatArea.scrollTop = chatArea.scrollHeight;
+                speakText(replyText);
+            }, 600);
+
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            if(input && input.value.trim() !== '') {
+                askAI(input.value.trim());
+                input.value = '';
+            }
+        }
+
+        function triggerVoiceInput() {
+            showToast("🎤 Listening... Speak now (Simulated)");
+            setTimeout(() => {
+                askAI("What to do if BP is high?");
+            }, 1500);
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showToast("Audio playback simulated.");
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
