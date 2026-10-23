@@ -3,101 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArogyaBand Companion - Rural Health System</title>
+    <title>ArogyaBand Companion - Rural Health Portal</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #0f172a; color: #f8fafc; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .app-container { width: 100%; max-width: 480px; background: #1e293b; border-radius: 24px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 12px; }
-        h1 { font-size: 20px; font-weight: 700; color: #38bdf8; }
-        p.subtitle { font-size: 12px; color: #94a3b8; }
+        
+        /* Instagram-style Profile Header */
+        .profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #334155; }
+        .profile-pic { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid #38bdf8; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
+        .profile-info h2 { font-size: 18px; font-weight: 700; color: #f8fafc; }
+        .profile-info p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+        .profile-tags { display: flex; gap: 8px; margin-top: 6px; }
+
         .card { background: #0f172a; border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
         .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
         .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
         .badge-green { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+        .badge-blue { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
+
         button { cursor: pointer; border: none; border-radius: 12px; padding: 12px 16px; font-weight: 600; font-size: 14px; transition: 0.2s; width: 100%; margin-top: 8px; }
         .btn-sos { background: #dc2626; color: white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); }
         .btn-sos:hover { background: #b91c1c; }
         .btn-primary { background: #0284c7; color: white; }
         .btn-primary:hover { background: #0369a1; }
+        .btn-success { background: #16a34a; color: white; }
+
         .vitals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
         .vital-box { background: #1e293b; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
         .vital-value { font-size: 22px; font-weight: 700; color: #38bdf8; margin-top: 4px; }
-        .nav-tabs { display: flex; justify-content: space-around; background: #0f172a; padding: 8px; border-radius: 14px; margin-top: 20px; border: 1px solid #334155; }
-        .nav-tab { background: none; color: #94a3b8; font-size: 12px; padding: 6px; width: auto; margin: 0; }
-        .nav-tab.active { color: #38bdf8; font-weight: bold; }
+        
+        .pill-item { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 14px; border-radius: 10px; margin-top: 8px; border: 1px solid #334155; font-size: 13px; }
+        .chip { display: inline-block; background: #1e293b; color: #38bdf8; padding: 6px 12px; border-radius: 16px; font-size: 11px; margin-right: 6px; margin-top: 8px; cursor: pointer; border: 1px solid #334155; }
+        .chip:hover { background: #334155; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <header>
-            <div>
-                <h1>ArogyaBand Companion</h1>
-                <p class="subtitle">Rural Health IoT & Community Safety Portal</p>
+        <!-- Instagram-Inspired Profile Header -->
+        <div class="profile-header">
+            <div class="profile-pic">🩺</div>
+            <div class="profile-info">
+                <h2>ArogyaBand Patient</h2>
+                <p>Rural Health Center Zone • Kerala</p>
+                <div class="profile-tags">
+                    <span class="badge badge-green">🟢 Band Connected</span>
+                    <span class="badge badge-blue">📍 GPS Active</span>
+                </div>
             </div>
-            <span class="badge badge-green">BLE Active</span>
-        </header>
+        </div>
 
         <!-- Live Vitals Card -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>Live Health Vitals</strong>
-                <span class="badge badge-green">Normal</span>
+                <strong>Live Health Vitals (Optical PPG)</strong>
+                <span class="badge badge-green" id="vitals-status">Normal</span>
             </div>
             <div class="vitals-grid">
                 <div class="vital-box">
-                    <span style="font-size: 12px; color: #94a3b8;">Heart Rate (PPG)</span>
-                    <div class="vital-value" id="hr-val">78 BPM</div>
+                    <span style="font-size: 12px; color: #94a3b8;">Heart Rate</span>
+                    <div class="vital-value" id="hr-val">76 BPM</div>
                 </div>
                 <div class="vital-box">
-                    <span style="font-size: 12px; color: #94a3b8;">Blood Pressure</span>
-                    <div class="vital-value" id="bp-val">120/80</div>
+                    <span style="font-size: 12px; color: #94a3b8;">Est. Blood Pressure</span>
+                    <div class="vital-value" id="bp-val">118/79</div>
                 </div>
+            </div>
+            <button class="btn-primary" style="background: #334155; font-size: 12px; padding: 8px;" onclick="simulateSpike()">⚠️ Test High BPM/BP Alert Simulation</button>
+        </div>
+
+        <!-- Medicine Schedule Reminder Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #38bdf8;">Daily Pill Schedule</strong>
+                <span class="badge badge-blue" id="pill-status">2 Pending</span>
+            </div>
+            <div class="pill-item">
+                <div>
+                    <strong>Metformin (500mg)</strong><br>
+                    <span style="font-size: 11px; color: #94a3b8;">Morning Dose • 8:00 AM</span>
+                </div>
+                <button style="width: auto; padding: 6px 14px; font-size: 12px; margin: 0;" class="btn-success" onclick="takePill(this)">Take</button>
+            </div>
+            <div class="pill-item">
+                <div>
+                    <strong>Aspirin (75mg)</strong><br>
+                    <span style="font-size: 11px; color: #94a3b8;">Afternoon Dose • 1:00 PM</span>
+                </div>
+                <button style="width: auto; padding: 6px 14px; font-size: 12px; margin: 0;" class="btn-success" onclick="takePill(this)">Take</button>
             </div>
         </div>
 
         <!-- Emergency SOS Card -->
-        <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="color: #f87171;">Emergency SOS Gateway</strong>
-                <span class="badge badge-red">Offline SMS Ready</span>
-            </div>
-            <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Tap below to instantly dispatch your GPS location and distress signal to nearby medical centers and emergency contacts.</p>
-            <button class="btn-sos" onclick="triggerSOS()">🚨 One-Tap Emergency SOS</button>
-        </div>
-
-        <!-- AI Assistant Card -->
-        <div class="card">
-            <strong>Arogya AI Assistant</strong>
-            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Ask health questions or check medicine schedules.</p>
-            <input type="text" id="ai-input" placeholder="Type symptom or query..." style="width: 100%; padding: 10px; margin-top: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px;">
-            <button class="btn-primary" onclick="askAI()">Ask Assistant</button>
-            <p id="ai-response" style="font-size: 13px; color: #38bdf8; margin-top: 8px;"></p>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <button class="nav-tab active">📊 Vitals</button>
-            <button class="nav-tab">🚨 SOS</button>
-            <button class="nav-tab">💊 Pills</button>
-            <button class="nav-tab">🤖 AI Voice</button>
-        </div>
-    </div>
-
-    <script>
-        function triggerSOS() {
-            alert("🚨 EMERGENCY SOS ACTIVATED!\nBroadcasting GPS coordinates (10.22° N, 76.20° E) via offline SMS to nearest medical center & emergency contacts.");
-        }
-        function askAI() {
-            const query = document.getElementById('ai-input').value;
-            const res = document.getElementById('ai-response');
-            if(!query) {
-                res.innerText = "Please enter a question or symptom.";
-                return;
-            }
-            res.innerText = "AI Advice: Based on your query '" + query + "', please stay hydrated. If symptoms persist, visit the nearest rural health center.";
-        }
-    </script>
-</body>
-</html>
+        <div class="card"
